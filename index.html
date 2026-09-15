@@ -407,7 +407,17 @@ function openForm(p){
       <label>כמה משתמשים בו</label>
       <div class="chips" id="f_uses">
         ${[['','עדיין לא יודעת'],[14,'פעמיים ביום'],[7,'פעם ביום'],[5,'5 בשבוע'],[4,'4 בשבוע'],[3,'3 בשבוע'],[2,'פעמיים בשבוע'],[1,'פעם בשבוע']]
-          .map(([v,l])=>`<button type="button" class="chip ${String(p.usesPerWeek??'')===String(v)?'on':''}" data-v="${v}">${l}</button>`).join('')}
+          .map(([v,l])=>`<button type="button" class="chip ${!p.freqPair && String(p.usesPerWeek??'')===String(v)?'on':''}" data-v="${v}">${l}</button>`).join('')}
+        <button type="button" class="chip ${p.freqPair?'on':''}" data-v="custom">שילוב</button>
+      </div>
+      <div id="f_customBlock" hidden>
+        <div class="row2">
+          <div><label for="f_perDay">פעמים ביום</label>
+            <select id="f_perDay">${[1,2,3].map(v=>`<option value="${v}" ${(p.freqPair?.[0]||1)==v?'selected':''}>${v}</option>`).join('')}</select></div>
+          <div><label for="f_days">ימים בשבוע</label>
+            <select id="f_days">${[1,2,3,4,5,6,7].map(v=>`<option value="${v}" ${(p.freqPair?.[1]||5)==v?'selected':''}>${v}</option>`).join('')}</select></div>
+        </div>
+        <div class="hint" id="f_customSum"></div>
       </div>
       <div class="hint">זה רק כדי לתת תחזית ראשונית. אחרי שקילה שנייה היא מוחלפת בקצב אמיתי שנמדד, וגם בלי תשובה כאן הכל ימשיך לעבוד.</div>
       <label for="f_dose">כמה בערך בכל שימוש (מ״ל)</label>
@@ -435,16 +445,33 @@ function openForm(p){
     syncDose();
     $('f_type').addEventListener('pick', syncDose);
     $('f_ml').addEventListener('input', syncDose);
+    const syncCustom = () => {
+      const on = pick('f_uses') === 'custom';
+      $('f_customBlock').hidden = !on;
+      if(on) $('f_customSum').textContent =
+        `${+$('f_perDay').value * +$('f_days').value} שימושים בשבוע`;
+    };
+    syncCustom();
+    $('f_uses').addEventListener('pick', syncCustom);
+    $('f_perDay').onchange = syncCustom;
+    $('f_days').onchange = syncCustom;
     $('f_cancel') && ($('f_cancel').onclick = closeSheet);
     $('f_save').onclick = async () => {
       const name = $('f_name').value.trim(), ml = +$('f_ml').value, gross = +$('f_gross').value;
       if(!name || !(ml>0) || !(gross>0)) return toast('חסר שם, נפח או משקל');
       const type = pick('f_type'), status = pick('f_status');
       if(gross < ml*densityFor(type)[0]*0.9) return toast('המשקל נמוך מהתוכן בלבד — לבדוק שוב');
-      const uses = status==='open' ? pick('f_uses') : (p.usesPerWeek ?? '');
+      const usesPick = status==='open' ? pick('f_uses') : (p.freqPair ? 'custom' : (p.usesPerWeek ?? ''));
+      let uses = usesPick, freqPair = null;
+      if(usesPick === 'custom'){
+        const perDay = status==='open' ? +$('f_perDay').value : p.freqPair[0];
+        const days   = status==='open' ? +$('f_days').value   : p.freqPair[1];
+        uses = perDay * days; freqPair = [perDay, days];
+      }
       const o = { id:p.id||crypto.randomUUID(), name, brand:$('f_brand').value.trim(), type,
         vessel:pick('f_vessel'), ml, initialGross:gross, status,
         usesPerWeek: uses ? +uses : null,
+        freqPair,
         doseMl: (+$('f_dose').value > 0) ? +$('f_dose').value : null,
         weighedAt: p.weighedAt || Date.now(),
         openedAt: status==='open' ? new Date($('f_date').value||today()).getTime() : null,
