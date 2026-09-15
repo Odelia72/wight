@@ -1,5 +1,5 @@
 /* מד מדף — service worker: offline shell + daily background check */
-const CACHE = 'shelf-v1';
+const CACHE = 'shelf-v2';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
@@ -34,7 +34,14 @@ const DAY = 86400000;
 const D = { serum:[.98,1.03,1.08], cream:[.88,.95,1.02], rich:[.85,.92,.99], eye:[.90,.97,1.04],
   oil:[.84,.89,.93], gel:[.98,1.02,1.06], mask:[1.02,1.15,1.30], cleanser:[.97,1.02,1.07],
   spf:[.98,1.05,1.12], toner:[.99,1.00,1.02], body:[.92,.98,1.04] };
-const GPU = { serum:.4, cream:.6, rich:.8, eye:.25, oil:.4, gel:.7, mask:8, cleanser:1.5, spf:1.2, toner:2, body:4 };
+const DOSE = { cream:[.45,50], rich:[.5,50], serum:[.35,30], eye:[.12,15], oil:[.3,30], gel:[.7,50],
+  mask:[7,100], cleanser:[1.8,150], spf:[1.2,50], toner:[2.5,200], body:[7,250] };
+function doseOf(p){
+  if (p.doseMl > 0) return p.doseMl;
+  const [base, ref] = DOSE[p.type] || DOSE.cream;
+  const v = base * Math.pow((p.ml || ref) / ref, 0.6);
+  return Math.min(base * 3, Math.max(base * 0.4, v));
+}
 const RES = { jar:.02, tube:.06, pump:.08, dropper:.04, spray:.05 };
 
 function db() {
@@ -72,14 +79,14 @@ async function check() {
     let content = p.ml * dens[1] * 1.02;
     if (p.emptyWeight != null) content = Math.max(1, p.initialGross - p.emptyWeight);
 
-    const ws = [{ w: p.initialGross, t: p.openedAt || p.weighedAt }, ...(p.weighings || [])].sort((a,b)=>a.t-b.t);
+    const ws = [{ w: p.initialGross, t: p.openedAt || p.weighedAt || p.startDate }, ...(p.weighings || [])].sort((a,b)=>a.t-b.t);
     const last = ws[ws.length - 1];
     const used = Math.max(0, p.initialGross - last.w);
     const days = (last.t - ws[0].t) / DAY;
 
     let gPerDay = null;
     if (used >= 2 && days >= 4) gPerDay = used / days;
-    else if (p.usesPerWeek) gPerDay = p.usesPerWeek * (GPU[p.type] || .6) / 7;
+    else if (p.usesPerWeek) gPerDay = p.usesPerWeek * doseOf(p) * dens[1] / 7;
     if (!gPerDay) continue;
 
     const res = RES[p.vessel || 'jar'];

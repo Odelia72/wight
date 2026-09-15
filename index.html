@@ -121,6 +121,10 @@ body{
 
 /* form */
 label{display:block;font-size:12.5px;font-weight:500;color:var(--ink-soft);margin:16px 0 6px}
+textarea{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--surface);
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;line-height:1.5;color:var(--ink-soft);
+  resize:vertical;direction:ltr;text-align:left}
+textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
 input[type=text],input[type=number],input[type=date],select{
   width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--surface);
   font:inherit;color:inherit;appearance:none}
@@ -180,17 +184,17 @@ button:focus-visible,.item:focus-visible{outline:2px solid var(--accent);outline
 <script type="module">
 /* ============ ידע: צפיפות (גרם למ״ל) [מינימום, אופייני, מקסימום] + גרם לשימוש ============ */
 const TYPES = {
-  cream:    {label:'קרם פנים',          d:[0.88,0.95,1.02], gpu:0.6},
-  rich:     {label:'קרם עשיר / באלם',   d:[0.85,0.92,0.99], gpu:0.8},
-  serum:    {label:'סרום',              d:[0.98,1.03,1.08], gpu:0.4},
-  eye:      {label:'קרם עיניים',        d:[0.90,0.97,1.04], gpu:0.25},
-  oil:      {label:'שמן',               d:[0.84,0.89,0.93], gpu:0.4},
-  gel:      {label:'ג׳ל',               d:[0.98,1.02,1.06], gpu:0.7},
-  mask:     {label:'מסכה',              d:[1.02,1.15,1.30], gpu:8},
-  cleanser: {label:'ניקוי פנים',        d:[0.97,1.02,1.07], gpu:1.5},
-  spf:      {label:'הגנה מהשמש',        d:[0.98,1.05,1.12], gpu:1.2},
-  toner:    {label:'טונר',              d:[0.99,1.00,1.02], gpu:2},
-  body:     {label:'קרם גוף',           d:[0.92,0.98,1.04], gpu:4},
+  cream:    {label:'קרם פנים',          d:[0.88,0.95,1.02], dose:0.45, ref:50},
+  rich:     {label:'קרם עשיר / באלם',   d:[0.85,0.92,0.99], dose:0.50, ref:50},
+  serum:    {label:'סרום',              d:[0.98,1.03,1.08], dose:0.35, ref:30},
+  eye:      {label:'קרם עיניים',        d:[0.90,0.97,1.04], dose:0.12, ref:15},
+  oil:      {label:'שמן',               d:[0.84,0.89,0.93], dose:0.30, ref:30},
+  gel:      {label:'ג׳ל',               d:[0.98,1.02,1.06], dose:0.70, ref:50},
+  mask:     {label:'מסכה',              d:[1.02,1.15,1.30], dose:7.0,  ref:100},
+  cleanser: {label:'ניקוי פנים',        d:[0.97,1.02,1.07], dose:1.80, ref:150},
+  spf:      {label:'הגנה מהשמש',        d:[0.98,1.05,1.12], dose:1.20, ref:50},
+  toner:    {label:'טונר',              d:[0.99,1.00,1.02], dose:2.50, ref:200},
+  body:     {label:'קרם גוף',           d:[0.92,0.98,1.04], dose:7.0,  ref:250},
 };
 const VESSEL = {jar:{label:'צנצנת',r:.02}, tube:{label:'טיוב',r:.06}, pump:{label:'משאבה',r:.08},
                 dropper:{label:'טפטפת',r:.04}, spray:{label:'ספריי',r:.05}};
@@ -221,12 +225,19 @@ function densityFor(type){
   if(s.length >= 2){ const m = s.reduce((a,b)=>a+b,0)/s.length; return [m*.97, m, m*1.03]; }
   return TYPES[type].d;
 }
+function defaultDose(type, ml){            // אריזה גדולה = מנה גדולה יותר, אבל לא ליניארית
+  const t = TYPES[type];
+  const v = t.dose * Math.pow((ml||t.ref)/t.ref, 0.6);
+  return +Math.min(t.dose*3, Math.max(t.dose*0.4, v)).toFixed(2);
+}
+const doseOf = p => p.doseMl ?? defaultDose(p.type, p.ml);
+
 function stats(p){
   const t = TYPES[p.type], d = densityFor(p.type);
   let cMin = p.ml*d[0], cTyp = p.ml*d[1]*1.02, cMax = p.ml*d[2]*OVERFILL, exact = false;
   if(p.emptyWeight != null){ cMin = cTyp = cMax = Math.max(1, p.initialGross - p.emptyWeight); exact = true; }
 
-  const base = {w:p.initialGross, t:p.openedAt ?? p.weighedAt};
+  const base = {w:p.initialGross, t:p.openedAt ?? p.weighedAt ?? p.startDate ?? Date.now()};
   const ws = [base, ...(p.weighings||[])].sort((a,b)=>a.t-b.t);
   const last = ws[ws.length-1];
   const used = Math.max(0, p.initialGross - last.w);
@@ -243,7 +254,7 @@ function stats(p){
   if(p.status === 'open'){
     const days = (last.t - ws[0].t)/DAY;
     if(used >= 2 && days >= 4){ gPerDay = used/days; src = 'measured'; }
-    else if(p.usesPerWeek){ gPerDay = p.usesPerWeek * t.gpu / 7; src = 'guess'; }
+    else if(p.usesPerWeek){ gPerDay = p.usesPerWeek * doseOf(p) * d[1] / 7; src = 'guess'; }
   }
   const usableG = Math.max(0, gramsLeft - cTyp*residue);
   const daysLeft = gPerDay ? Math.round(usableG/gPerDay) : null;
@@ -257,6 +268,8 @@ const rangeTxt = s => s.exact ? 'מדויק'
 function leftTxt(s){
   if(s.daysLeft == null) return 'אין עדיין תחזית';
   if(s.daysLeft <= 0) return 'נגמר';
+  const guess = s.src === 'guess';
+  if(guess && s.daysLeft > 150) return 'יותר מחצי שנה';      // הערכה גסה — בלי דיוק מדומה
   if(s.daysLeft < 14) return `עוד כ־${s.daysLeft} ימים`;
   if(s.daysLeft < 70) return `עוד כ־${Math.round(s.daysLeft/7)} שבועות`;
   return `עוד כ־${Math.round(s.daysLeft/30)} חודשים`;
@@ -393,10 +406,13 @@ function openForm(p){
       <input id="f_date" type="date" value="${new Date(p.openedAt||Date.now()).toISOString().slice(0,10)}">
       <label>כמה משתמשים בו</label>
       <div class="chips" id="f_uses">
-        ${[['','עדיין לא יודעת'],[14,'פעמיים ביום'],[7,'פעם ביום'],[3,'3 בשבוע'],[2,'פעמיים בשבוע'],[1,'פעם בשבוע']]
+        ${[['','עדיין לא יודעת'],[14,'פעמיים ביום'],[7,'פעם ביום'],[5,'5 בשבוע'],[4,'4 בשבוע'],[3,'3 בשבוע'],[2,'פעמיים בשבוע'],[1,'פעם בשבוע']]
           .map(([v,l])=>`<button type="button" class="chip ${String(p.usesPerWeek??'')===String(v)?'on':''}" data-v="${v}">${l}</button>`).join('')}
       </div>
       <div class="hint">זה רק כדי לתת תחזית ראשונית. אחרי שקילה שנייה היא מוחלפת בקצב אמיתי שנמדד, וגם בלי תשובה כאן הכל ימשיך לעבוד.</div>
+      <label for="f_dose">כמה בערך בכל שימוש (מ״ל)</label>
+      <input id="f_dose" type="number" inputmode="decimal" step="any" value="${p.doseMl ?? ''}" placeholder="—">
+      <div class="hint" id="f_doseHint"></div>
     </div>
     <button class="btn" id="f_save">${edit?'שמירת שינויים':'הוספה למדף'}</button>
     ${edit?'':'<button class="btn ghost" id="f_cancel">ביטול</button>'}
@@ -410,6 +426,15 @@ function openForm(p){
     };
     sync(p.status==='sealed'?'sealed':'open');
     $('f_status').addEventListener('pick', e=>sync(e.detail));
+    const syncDose = () => {
+      const def = defaultDose(pick('f_type'), +$('f_ml').value || undefined);
+      $('f_dose').placeholder = def;
+      $('f_doseHint').textContent =
+        `ברירת המחדל לסוג ולגודל הזה היא ${def} מ״ל. זה הניחוש הכי שברירי בכל החישוב — אם את יודעת שאת נדיבה יותר, כדאי לכתוב מספר.`;
+    };
+    syncDose();
+    $('f_type').addEventListener('pick', syncDose);
+    $('f_ml').addEventListener('input', syncDose);
     $('f_cancel') && ($('f_cancel').onclick = closeSheet);
     $('f_save').onclick = async () => {
       const name = $('f_name').value.trim(), ml = +$('f_ml').value, gross = +$('f_gross').value;
@@ -420,6 +445,7 @@ function openForm(p){
       const o = { id:p.id||crypto.randomUUID(), name, brand:$('f_brand').value.trim(), type,
         vessel:pick('f_vessel'), ml, initialGross:gross, status,
         usesPerWeek: uses ? +uses : null,
+        doseMl: (+$('f_dose').value > 0) ? +$('f_dose').value : null,
         weighedAt: p.weighedAt || Date.now(),
         openedAt: status==='open' ? new Date($('f_date').value||today()).getTime() : null,
         weighings: p.weighings||[], emptyWeight: p.emptyWeight ?? null, notifiedAt: p.notifiedAt ?? null };
@@ -466,7 +492,7 @@ function openDetail(id){
            <button id="d_add">שמירה</button></div>
          <div class="hint">${
            s.src==='measured' ? `קצב מדוד: ${s.gPerDay.toFixed(2)} גרם ליום.` :
-           s.src==='guess'    ? 'התחזית מבוססת כרגע על הרגלי השימוש שהזנת. השקילה הבאה תחליף אותה במדידה.' :
+           s.src==='guess'    ? `התחזית מניחה ${doseOf(p)} מ״ל בכל שימוש. זו הערכה בלבד — השקילה הבאה תחליף אותה במדידה אמיתית.` :
            'עוד אין תחזית. שקילה נוספת בעוד כמה ימים תיתן קצב אמיתי.'}</div>
        </div>`}
     <div class="panel">
@@ -536,6 +562,7 @@ function openSettings(){
     <button class="btn" id="s_notif">${Notification.permission==='granted'?'ההתראות פעילות':'הפעלת התראות'}</button>
     <div class="hint">עובד בכרום על אנדרואיד, אחרי שהאפליקציה נוספה למסך הבית. המערכת מעירה אותה ברקע בערך פעם ביום — העיתוי המדויק נתון לה.</div>
     <div class="note">ניקוי נתוני הדפדפן או החלפת טלפון ימחקו הכל. כדאי לייצא לקובץ מדי פעם.</div>
+    <button class="btn ghost" id="s_move">העברה בין מכשירים</button>
     <button class="btn ghost" id="s_exp">ייצוא לקובץ</button>
     <button class="btn ghost" id="s_imp">ייבוא מקובץ</button>
     <input type="file" id="s_file" accept="application/json" hidden>
@@ -549,10 +576,12 @@ function openSettings(){
       if(r === 'granted'){ await DB.setMeta('settings',settings); await registerSync(); toast('התראות הופעלו'); openSettings(); }
       else toast('ההרשאה נדחתה');
     };
+    $('s_move').onclick = openTransfer;
     $('s_exp').onclick = () => {
       const blob = new Blob([JSON.stringify({v:1,products,settings,learned},null,2)],{type:'application/json'});
       const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-      a.download = `shelf-${today()}.json`; a.click(); URL.revokeObjectURL(a.href);
+      a.download = `shelf-${new Date().toISOString().slice(0,16).replace(/[:T]/g,'-')}.json`;
+      a.click(); URL.revokeObjectURL(a.href);
     };
     $('s_imp').onclick = () => $('s_file').click();
     $('s_file').onchange = async e => {
@@ -564,6 +593,42 @@ function openSettings(){
         if(data.learned)  await DB.setMeta('learned',  learned  = {...learned,  ...data.learned});
         await load(); closeSheet(); toast(`יובאו ${data.products.length} מוצרים`);
       }catch{ toast('הקובץ לא תקין'); }
+    };
+  });
+}
+
+/* ============ העברה בין מכשירים ============ */
+const snapshot = () => JSON.stringify({v:1, products, settings, learned});
+function openTransfer(){
+  const n = products.length;
+  openSheet(`
+    <h2>העברה בין מכשירים</h2>
+    <div class="sub">להעתיק כאן, לשלוח לעצמך, ולהדביק שם</div>
+    <label>הנתונים של המכשיר הזה (${n} מוצרים)</label>
+    <textarea id="t_out" rows="5" readonly>${esc(snapshot())}</textarea>
+    <button class="btn" id="t_copy">העתקה ללוח</button>
+    <div class="hint">אפשר לשלוח את זה לעצמך בוואטסאפ, במייל או בפתק — זה סתם טקסט.</div>
+    <label for="t_in">הדבקת נתונים ממכשיר אחר</label>
+    <textarea id="t_in" rows="5" placeholder="להדביק כאן"></textarea>
+    <button class="btn accent" id="t_in_go">ייבוא</button>
+    <div class="note">הייבוא ממזג: מוצר שקיים בשני המכשירים יתעדכן לפי מה שהודבק, ומוצר שקיים רק כאן יישאר. מחיקה במכשיר אחד לא מוחקת בשני.</div>
+  `, ()=>{
+    $('t_copy').onclick = async () => {
+      const txt = snapshot();
+      try{ await navigator.clipboard.writeText(txt); toast('הועתק'); }
+      catch{ const el = $('t_out'); el.focus(); el.select(); document.execCommand('copy'); toast('הועתק'); }
+    };
+    $('t_in_go').onclick = async () => {
+      const raw = $('t_in').value.trim();
+      if(!raw) return toast('אין מה לייבא');
+      try{
+        const data = JSON.parse(raw);
+        if(!Array.isArray(data.products)) throw 0;
+        for(const p of data.products) await DB.put(p);
+        if(data.settings) await DB.setMeta('settings', settings = {...settings, ...data.settings});
+        if(data.learned)  await DB.setMeta('learned',  learned  = {...learned,  ...data.learned});
+        await load(); closeSheet(); toast(`יובאו ${data.products.length} מוצרים`);
+      }catch{ toast('הטקסט לא תקין — לוודא שהועתק במלואו'); }
     };
   });
 }
@@ -593,7 +658,23 @@ async function registerSync(){
 }
 
 /* ============ הפעלה ============ */
-async function load(){ products = await DB.all(); render(); }
+function migrate(p){                       // נתונים מגרסאות קודמות
+  let changed = false;
+  if(!p.status){ p.status = 'open'; changed = true; }
+  if(p.weighedAt == null && p.startDate){ p.weighedAt = p.startDate; changed = true; }
+  if(p.weighedAt == null){ p.weighedAt = Date.now(); changed = true; }
+  if(p.status === 'open' && p.openedAt == null){ p.openedAt = p.startDate || p.weighedAt; changed = true; }
+  if(p.doseMl === undefined){ p.doseMl = null; changed = true; }
+  if(!TYPES[p.type]){ p.type = 'cream'; changed = true; }
+  if(!VESSEL[p.vessel]){ p.vessel = 'jar'; changed = true; }
+  return changed;
+}
+async function load(){
+  products = await DB.all();
+  const fixed = products.filter(migrate);
+  if(fixed.length){ for(const p of fixed) await DB.put(p); products = await DB.all(); }
+  render();
+}
 (async function init(){
   settings = (await DB.meta('settings'))?.v || settings;
   learned  = (await DB.meta('learned'))?.v  || {};
