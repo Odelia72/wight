@@ -40,20 +40,27 @@ body{
   display:inline-flex;align-items:center;gap:5px;transition:all .2s}
 .pill:hover{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-deep)}
 
-/* hero */
-.hero{background:var(--ink);
-  background-image:radial-gradient(circle at 85% 15%, rgba(181,82,59,.35) 0%, transparent 55%),
-                   radial-gradient(circle at 15% 90%, rgba(224,136,104,.18) 0%, transparent 50%);
-  border-radius:24px;padding:30px 24px 28px;text-align:center;margin-bottom:14px;
-  color:var(--cream);box-shadow:0 8px 24px -8px rgba(27,40,69,.25);overflow:hidden}
-.hero-label{font-size:11px;color:var(--cream-soft);letter-spacing:.16em;margin-bottom:4px;font-weight:500}
-.hero-number{font-size:84px;line-height:1;font-weight:800;letter-spacing:-.05em;color:var(--cream);margin:0;
-  font-variant-numeric:tabular-nums}
-.hero-number.word{font-size:40px;letter-spacing:-.02em;padding:14px 0 8px}
-.hero-sub{font-size:14px;color:var(--cream-soft);margin-top:10px}
+/* סליידר כיוון ידני */
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;background:transparent;margin:10px 0 4px}
+input[type=range]::-webkit-slider-runnable-track{height:10px;border-radius:999px;background:var(--bg-deep)}
+input[type=range]::-moz-range-track{height:10px;border-radius:999px;background:var(--bg-deep)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;
+  background:var(--ink);border:3px solid var(--surface);box-shadow:0 2px 6px rgba(27,40,69,.35);margin-top:-8px;cursor:grab}
+input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--ink);
+  border:3px solid var(--surface);box-shadow:0 2px 6px rgba(27,40,69,.35);cursor:grab}
+input[type=range]:focus{outline:none}
+input[type=range]:focus::-webkit-slider-thumb{box-shadow:0 0 0 4px var(--accent-soft)}
+.lvlrow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:6px}
+.lvlval{font-size:22px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.lvlrow button{flex:none;padding:11px 20px;border:none;border-radius:14px;background:var(--accent);color:#fff;
+  font:inherit;font-weight:600;cursor:pointer}
 
 /* stats */
 .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.stats.three{grid-template-columns:repeat(3,1fr);gap:8px}
+.stat.alert{background:rgba(181,82,59,.10);border-color:rgba(181,82,59,.3)}
+.stat.alert .stat-value{color:var(--accent-deep)}
+.stat.alert .stat-label{color:var(--accent-deep)}
 .stat{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;text-align:center}
 .stat-value{font-size:26px;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
 .stat-label{font-size:12px;color:var(--ink-soft);margin-top:2px}
@@ -87,7 +94,9 @@ body{
 .itop{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
 .name{font-size:16px;font-weight:600;letter-spacing:-.01em}
 .meta{font-size:12.5px;color:var(--ink-soft);margin-top:2px}
-.pct{font-size:24px;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pctblock{text-align:left;white-space:nowrap;flex:none}
+.pct{font-size:19px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.15}
+.pctsub{font-size:12px;color:var(--ink-soft);margin-top:1px}
 .progress{margin-top:13px;height:6px;background:var(--bg-deep);border-radius:999px;position:relative;overflow:hidden}
 .progress-fill{position:absolute;top:0;right:0;bottom:0;background:var(--ink);border-radius:999px;
   transition:width .5s cubic-bezier(.16,1,.3,1)}
@@ -96,9 +105,9 @@ body{
 .foot{display:flex;justify-content:space-between;margin-top:9px;font-size:12.5px;color:var(--ink-faint)}
 .item.low .progress-fill{background:var(--accent)}
 .item.low .progress-band{background:repeating-linear-gradient(-45deg,rgba(181,82,59,.25) 0 3px,transparent 3px 6px)}
-.item.low .foot .state{color:var(--accent);font-weight:600}
+.item.low .pctsub{color:var(--accent);font-weight:600}
 .item.out .progress-fill{background:var(--accent-deep)}
-.item.out .foot .state{color:var(--accent-deep);font-weight:600}
+.item.out .pctsub{color:var(--accent-deep);font-weight:600}
 .item.sealed{border-style:dashed;background:transparent}
 .item.done{opacity:.55}
 
@@ -234,8 +243,19 @@ const doseOf = p => p.doseMl ?? defaultDose(p.type, p.ml);
 
 function stats(p){
   const t = TYPES[p.type], d = densityFor(p.type);
-  let cMin = p.ml*d[0], cTyp = p.ml*d[1]*1.02, cMax = p.ml*d[2]*OVERFILL, exact = false;
-  if(p.emptyWeight != null){ cMin = cTyp = cMax = Math.max(1, p.initialGross - p.emptyWeight); exact = true; }
+  let cMin = p.ml*d[0], cTyp = p.ml*d[1]*1.02, cMax = p.ml*d[2]*OVERFILL, exact = false, calibrated = false;
+  const residue0 = VESSEL[p.vessel||'jar'].r;
+  if(p.emptyWeight != null){
+    cMin = cTyp = cMax = Math.max(1, p.initialGross - p.emptyWeight); exact = true;
+  } else if(p.calib){
+    // היא ראתה בעין כמה נשאר בנקודת זמן מסוימת — משם אפשר לגזור כמה באמת היה בפנים
+    const usedThen = p.initialGross - p.calib.w;
+    const raw = p.calib.pct*(1-residue0) + residue0;
+    const c = usedThen/(1-raw);
+    if(usedThen > 0.5 && raw < 0.98 && c > p.ml*0.5 && c < p.ml*2){
+      cTyp = c; cMin = c*0.88; cMax = c*1.12; calibrated = true;
+    }
+  }
 
   const base = {w:p.initialGross, t:p.openedAt ?? p.weighedAt ?? p.startDate ?? Date.now()};
   const ws = [base, ...(p.weighings||[])].sort((a,b)=>a.t-b.t);
@@ -259,10 +279,11 @@ function stats(p){
   const usableG = Math.max(0, gramsLeft - cTyp*residue);
   const daysLeft = gPerDay ? Math.round(usableG/gPerDay) : null;
 
-  return {pct,lo,hi,gramsLeft,mlLeft,daysLeft,gPerDay,src,exact,used,last,residue,cTyp,weighings:ws};
+  return {pct,lo,hi,gramsLeft,mlLeft,daysLeft,gPerDay,src,exact,calibrated,used,last,residue,cTyp,weighings:ws};
 }
 const pctTxt = s => s.pct <= .02 ? 'ריק' : Math.round(s.pct*100)+'%';
 const rangeTxt = s => s.exact ? 'מדויק'
+  : s.calibrated ? `מכויל ידנית · ${Math.round(s.lo*100)}–${Math.round(s.hi*100)}%`
   : Math.round(s.hi*100)-Math.round(s.lo*100) <= 2 ? ''
   : `טווח ${Math.round(s.lo*100)}–${Math.round(s.hi*100)}%`;
 function leftTxt(s){
@@ -289,32 +310,14 @@ function render(){
     .sort((a,b)=>(a.s.daysLeft ?? 9e5)-(b.s.daysLeft ?? 9e5) || a.s.pct-b.s.pct);
   const soon = rows.filter(r=>r.s.daysLeft!=null && r.s.daysLeft <= settings.leadDays);
   const rest = rows.filter(r=>!soon.includes(r));
-  const out  = soon.filter(r=>r.s.daysLeft<=0);
 
-  /* hero + stats */
-  let hero;
-  if(!products.length){
-    hero = `<div class="hero"><div class="hero-label">מד מדף</div>
-      <div class="hero-number word">מדף ריק</div>
-      <div class="hero-sub">מתחילים ממוצר אחד</div></div>`;
-  } else if(soon.length){
-    const n = soon[0];
-    hero = `<div class="hero"><div class="hero-label">להזמין בקרוב</div>
-      <div class="hero-number">${soon.length}</div>
-      <div class="hero-sub">הכי דחוף: ${esc(n.p.name)} · ${leftTxt(n.s)}</div></div>`;
-  } else {
-    const next = rows.find(r=>r.s.daysLeft!=null);
-    hero = `<div class="hero"><div class="hero-label">מצב המדף</div>
-      <div class="hero-number word">הכל בשליטה</div>
-      <div class="hero-sub">${next ? `הבא בתור: ${esc(next.p.name)} · ${leftTxt(next.s)}`
-        : 'עוד אין מספיק נתונים לתחזית'}</div></div>`;
-  }
-  $('top').innerHTML = hero + `
-    <div class="stats">
+  /* סטטוס במקום ההירו */
+  $('top').innerHTML = products.length ? `
+    <div class="stats three">
       <div class="stat"><div class="stat-value">${open.length}</div><div class="stat-label">בשימוש</div></div>
-      <div class="stat"><div class="stat-value">${sealed.length}</div><div class="stat-label">סגורים במלאי</div></div>
-    </div>` + (out.length
-      ? `<div class="banner"><span>●</span><span>${out.map(r=>esc(r.p.name)).join(' · ')} — לפי החישוב נגמרו</span></div>` : '');
+      <div class="stat ${soon.length?'alert':''}"><div class="stat-value">${soon.length}</div><div class="stat-label">להזמין</div></div>
+      <div class="stat"><div class="stat-value">${sealed.length}</div><div class="stat-label">סגורים</div></div>
+    </div>` : '';
 
   /* list */
   const q = ($('search').value||'').trim();
@@ -349,13 +352,13 @@ function card({p,s}){
   return `<button class="item ${cls}" data-id="${p.id}">
     <div class="itop">
       <div><div class="name">${esc(p.name)}</div><div class="meta">${metaOf(p)}</div></div>
-      <div class="pct">${pctTxt(s)}</div>
+      <div class="pctblock"><div class="pct">${pctTxt(s)}</div><div class="pctsub">${leftTxt(s)}</div></div>
     </div>
     <div class="progress">
       <div class="progress-band" style="right:${s.lo*100}%;width:${Math.max(0,(s.hi-s.lo)*100)}%"></div>
       <div class="progress-fill" style="width:${s.lo*100}%"></div>
     </div>
-    <div class="foot"><span>${rangeTxt(s)}</span><span class="state">${leftTxt(s)}</span></div>
+    ${rangeTxt(s)?`<div class="foot"><span>${rangeTxt(s)}</span></div>`:''}
   </button>`;
 }
 
@@ -514,6 +517,15 @@ function openDetail(id){
         <div class="line">${s.exact?'חישוב מדויק':rangeTxt(s)||'הערכה'} · כ־${s.mlLeft.toFixed(1)} מ״ל · ${leftTxt(s)}</div>
        </div>
        <div class="panel">
+         <label style="margin-top:0">כיוון לפי מה שאת רואה</label>
+         <input type="range" id="d_lvl" min="0" max="100" step="1" value="${Math.round(s.pct*100)}">
+         <div class="lvlrow"><span class="lvlval" id="d_lvlv">${Math.round(s.pct*100)}%</span>
+           <button id="d_lvl_go">שמירת הכיוון</button></div>
+         <div class="hint">${p.calib
+           ? `כויל ידנית ב־${fmt(p.calib.t)}. כיוון חדש יחליף את הקודם.`
+           : 'אם את פותחת ורואה כמה נשאר, לגרור לשם. זה מכייל את החישוב לכל ההמשך, לא רק להיום.'}</div>
+       </div>
+       <div class="panel">
          <label for="d_w" style="margin-top:0">שקילה חדשה (גרם)</label>
          <div class="weighbox"><input id="d_w" type="number" inputmode="decimal" step="any" placeholder="${s.last.w}">
            <button id="d_add">שמירה</button></div>
@@ -532,6 +544,16 @@ function openDetail(id){
     <button class="btn ghost" id="d_edit">עריכת פרטים</button>
     <button class="btn danger" id="d_del">מחיקה</button>
   `, ()=>{
+    if($('d_lvl')){
+      $('d_lvl').oninput = e => $('d_lvlv').textContent = e.target.value + '%';
+      $('d_lvl_go').onclick = async () => {
+        const v = +$('d_lvl').value/100;
+        if(s.used <= 0.5) return toast('צריך קודם שקילה שמראה שימוש בפועל');
+        if(v >= 0.98) return toast('כיוון של כמעט מלא לא מלמד כלום');
+        p.calib = {pct:v, w:s.last.w, t:Date.now()};
+        await DB.put(p); await load(); openDetail(id); toast('כויל');
+      };
+    }
     $('d_add') && ($('d_add').onclick = async () => {
       const w = +$('d_w').value;
       if(!(w>0)) return toast('להקליד משקל');

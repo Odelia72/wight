@@ -76,8 +76,16 @@ async function check() {
     const smp = learned[p.type];
     if (smp && smp.length >= 2) { const m = smp.reduce((a,b)=>a+b,0)/smp.length; dens = [m*.97, m, m*1.03]; }
 
+    const res0 = RES[p.vessel || 'jar'];
     let content = p.ml * dens[1] * 1.02;
-    if (p.emptyWeight != null) content = Math.max(1, p.initialGross - p.emptyWeight);
+    if (p.emptyWeight != null) {
+      content = Math.max(1, p.initialGross - p.emptyWeight);
+    } else if (p.calib) {
+      const usedThen = p.initialGross - p.calib.w;
+      const raw = p.calib.pct * (1 - res0) + res0;
+      const c = usedThen / (1 - raw);
+      if (usedThen > 0.5 && raw < 0.98 && c > p.ml * 0.5 && c < p.ml * 2) content = c;
+    }
 
     const ws = [{ w: p.initialGross, t: p.openedAt || p.weighedAt || p.startDate }, ...(p.weighings || [])].sort((a,b)=>a.t-b.t);
     const last = ws[ws.length - 1];
@@ -89,10 +97,9 @@ async function check() {
     else if (p.usesPerWeek) gPerDay = p.usesPerWeek * doseOf(p) * dens[1] / 7;
     if (!gPerDay) continue;
 
-    const res = RES[p.vessel || 'jar'];
     // project forward from the last weighing to today
     const elapsed = (Date.now() - last.t) / DAY;
-    const usable = Math.max(0, content - used - content * res - gPerDay * elapsed);
+    const usable = Math.max(0, content - used - content * res0 - gPerDay * elapsed);
     const daysLeft = Math.round(usable / gPerDay);
 
     if (daysLeft > (settings.leadDays || 30)) continue;
