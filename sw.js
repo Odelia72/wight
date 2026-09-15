@@ -64,7 +64,7 @@ async function check() {
   const learned  = (await read(d, 'meta', 'learned'))?.v  || {};
 
   for (const p of products) {
-    if (p.status === 'done') continue;
+    if (p.status !== 'open') continue;          // סגורים במלאי לא מתריעים
     let dens = D[p.type] || D.cream;
     const smp = learned[p.type];
     if (smp && smp.length >= 2) { const m = smp.reduce((a,b)=>a+b,0)/smp.length; dens = [m*.97, m, m*1.03]; }
@@ -72,7 +72,7 @@ async function check() {
     let content = p.ml * dens[1] * 1.02;
     if (p.emptyWeight != null) content = Math.max(1, p.initialGross - p.emptyWeight);
 
-    const ws = [{ w: p.initialGross, t: p.startDate }, ...(p.weighings || [])].sort((a,b)=>a.t-b.t);
+    const ws = [{ w: p.initialGross, t: p.openedAt || p.weighedAt }, ...(p.weighings || [])].sort((a,b)=>a.t-b.t);
     const last = ws[ws.length - 1];
     const used = Math.max(0, p.initialGross - last.w);
     const days = (last.t - ws[0].t) / DAY;

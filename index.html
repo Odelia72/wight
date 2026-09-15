@@ -3,330 +3,369 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#1F2B2E">
+<meta name="theme-color" content="#F4EFE6">
 <title>מד מדף</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="apple-touch-icon" href="./icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&family=Frank+Ruhl+Libre:wght@500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;padding:0}
 :root{
-  --paper:#E9ECEC;
-  --card:#FFFFFF;
-  --ink:#1F2B2E;
-  --muted:#6D7C7E;
-  --line:#D2D9D9;
-  --level:#2E6F6B;
-  --level-soft:#2E6F6B2E;
-  --low:#B0722A;
-  --out:#9A4A3D;
-  --r:14px;
+  --bg:#F4EFE6; --bg-deep:#ECE5D6; --surface:#FFFFFF;
+  --ink:#1B2845; --ink-2:#243056; --ink-soft:#5E6987; --ink-faint:#9BA3B8;
+  --cream:#F4EFE6; --cream-soft:rgba(244,239,230,.75); --cream-faint:rgba(244,239,230,.45);
+  --accent:#B5523B; --accent-soft:#F2DDD4; --accent-deep:#8C3B27; --accent-glow:#E08868;
+  --line:#E2D8C7; --line-strong:#CBC0AE; --good:#4A7C59;
 }
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;padding:0}
 body{
-  background:var(--paper);color:var(--ink);
-  font-family:"Heebo",-apple-system,"Segoe UI",Arial,sans-serif;
-  font-size:16px;line-height:1.5;
-  padding-bottom:env(safe-area-inset-bottom);
-  overscroll-behavior-y:none;
+  font-family:'Heebo',system-ui,-apple-system,sans-serif;
+  background:var(--bg); color:var(--ink); min-height:100vh;
+  font-feature-settings:"kern","liga","tnum"; -webkit-font-smoothing:antialiased;
+  -webkit-tap-highlight-color:transparent;
+  background-image:
+    radial-gradient(circle at 10% 0%, rgba(181,82,59,.06) 0%, transparent 40%),
+    radial-gradient(circle at 90% 100%, rgba(27,40,69,.05) 0%, transparent 40%);
+  background-attachment:fixed;
 }
-.num{font-family:"Frank Ruhl Libre",Georgia,serif;font-variant-numeric:tabular-nums}
-.wrap{max-width:540px;margin:0 auto;padding:0 16px 120px}
+.app{max-width:480px;margin:0 auto;padding:28px 20px calc(40px + env(safe-area-inset-bottom))}
 
 /* header */
-header{padding:22px 0 10px}
-h1{font-family:"Frank Ruhl Libre",serif;font-weight:700;font-size:26px;margin:0;letter-spacing:-.01em}
-.sub{color:var(--muted);font-size:14px;margin-top:2px}
-.hrow{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
-.iconbtn{background:none;border:1px solid var(--line);border-radius:10px;width:40px;height:40px;
-  display:grid;place-items:center;color:var(--muted);cursor:pointer;flex:none}
-.iconbtn:active{background:#0000000a}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
+.header-title{font-size:22px;font-weight:700;letter-spacing:-.02em;margin:0}
+.pill{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:7px 14px;
+  font-size:12px;font-weight:500;color:var(--ink-soft);cursor:pointer;font-family:inherit;
+  display:inline-flex;align-items:center;gap:5px;transition:all .2s}
+.pill:hover{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-deep)}
 
-/* search */
-.search{width:100%;padding:11px 14px;border:1px solid var(--line);border-radius:11px;background:var(--card);
-  font:inherit;color:inherit;margin-bottom:14px}
-.search::placeholder{color:#9AA7A8}
+/* hero */
+.hero{background:var(--ink);
+  background-image:radial-gradient(circle at 85% 15%, rgba(181,82,59,.35) 0%, transparent 55%),
+                   radial-gradient(circle at 15% 90%, rgba(224,136,104,.18) 0%, transparent 50%);
+  border-radius:24px;padding:30px 24px 28px;text-align:center;margin-bottom:14px;
+  color:var(--cream);box-shadow:0 8px 24px -8px rgba(27,40,69,.25);overflow:hidden}
+.hero-label{font-size:11px;color:var(--cream-soft);letter-spacing:.16em;margin-bottom:4px;font-weight:500}
+.hero-number{font-size:84px;line-height:1;font-weight:800;letter-spacing:-.05em;color:var(--cream);margin:0;
+  font-variant-numeric:tabular-nums}
+.hero-number.word{font-size:40px;letter-spacing:-.02em;padding:14px 0 8px}
+.hero-sub{font-size:14px;color:var(--cream-soft);margin-top:10px}
 
-/* group label */
-.group{font-size:13px;color:var(--muted);margin:22px 2px 9px;display:flex;align-items:center;gap:9px}
-.group::after{content:"";flex:1;height:1px;background:var(--line)}
+/* stats */
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;text-align:center}
+.stat-value{font-size:26px;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.stat-label{font-size:12px;color:var(--ink-soft);margin-top:2px}
 
-/* card */
-.item{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:9px;
-  cursor:pointer;display:block;width:100%;text-align:right;font:inherit;color:inherit}
+/* banner */
+.banner{display:flex;gap:9px;align-items:center;background:rgba(181,82,59,.10);border:1px solid rgba(181,82,59,.25);
+  color:var(--accent-deep);border-radius:14px;padding:12px 14px;font-size:13.5px;margin-bottom:16px;line-height:1.45}
+.banner.good{background:rgba(74,124,89,.12);border-color:rgba(74,124,89,.25);color:var(--good)}
+
+.addbtn{width:100%;background:var(--surface);border:1px dashed var(--line-strong);border-radius:16px;
+  padding:14px;font:inherit;font-size:15px;font-weight:600;color:var(--ink-soft);cursor:pointer;
+  margin-bottom:28px;transition:all .2s}
+.addbtn:hover{border-color:var(--accent);color:var(--accent-deep);background:var(--accent-soft)}
+
+.search{width:100%;padding:11px 15px;border:1px solid var(--line);border-radius:14px;background:var(--surface);
+  font:inherit;color:inherit;margin-bottom:16px}
+.search::placeholder{color:var(--ink-faint)}
+
+/* section */
+.section{font-size:12px;font-weight:600;color:var(--ink-soft);letter-spacing:.1em;
+  margin:26px 2px 10px;display:flex;align-items:center;gap:10px}
+.section::after{content:"";flex:1;height:1px;background:var(--line)}
+.section:first-child{margin-top:0}
+
+/* product card */
+.item{display:block;width:100%;text-align:right;font:inherit;color:inherit;cursor:pointer;
+  background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:10px;
+  transition:border-color .2s,transform .12s}
+.item:hover{border-color:var(--line-strong)}
 .item:active{transform:scale(.995)}
-.itop{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
-.name{font-weight:500;font-size:16.5px}
-.meta{color:var(--muted);font-size:13px;margin-top:1px}
-.pct{font-size:21px;font-weight:700;white-space:nowrap}
-.pct small{font-size:12px;font-weight:400;color:var(--muted);margin-inline-start:2px}
+.itop{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.name{font-size:16px;font-weight:600;letter-spacing:-.01em}
+.meta{font-size:12.5px;color:var(--ink-soft);margin-top:2px}
+.pct{font-size:24px;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums;white-space:nowrap}
+.progress{margin-top:13px;height:6px;background:var(--bg-deep);border-radius:999px;position:relative;overflow:hidden}
+.progress-fill{position:absolute;top:0;right:0;bottom:0;background:var(--ink);border-radius:999px;
+  transition:width .5s cubic-bezier(.16,1,.3,1)}
+.progress-band{position:absolute;top:0;bottom:0;border-radius:999px;
+  background:repeating-linear-gradient(-45deg,rgba(27,40,69,.22) 0 3px,transparent 3px 6px)}
+.foot{display:flex;justify-content:space-between;margin-top:9px;font-size:12.5px;color:var(--ink-faint)}
+.item.low .progress-fill{background:var(--accent)}
+.item.low .progress-band{background:repeating-linear-gradient(-45deg,rgba(181,82,59,.25) 0 3px,transparent 3px 6px)}
+.item.low .foot .state{color:var(--accent);font-weight:600}
+.item.out .progress-fill{background:var(--accent-deep)}
+.item.out .foot .state{color:var(--accent-deep);font-weight:600}
+.item.sealed{border-style:dashed;background:transparent}
+.item.done{opacity:.55}
 
-/* level bar — solid = certain, hatched = uncertainty band */
-.bar{position:relative;height:9px;border-radius:5px;background:#E4E8E8;margin:11px 0 8px;overflow:hidden}
-.fill{position:absolute;top:0;right:0;bottom:0;background:var(--level);border-radius:5px}
-.band{position:absolute;top:0;bottom:0;border-radius:5px;
-  background:repeating-linear-gradient(-45deg,var(--level-soft) 0 3px,transparent 3px 6px)}
-.item.low .fill{background:var(--low)} .item.low .band{background:repeating-linear-gradient(-45deg,#B0722A33 0 3px,transparent 3px 6px)}
-.item.out .fill{background:var(--out)} .item.out .band{background:repeating-linear-gradient(-45deg,#9A4A3D33 0 3px,transparent 3px 6px)}
-.foot{display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
-.foot .warn{color:var(--low);font-weight:500}
-.foot .over{color:var(--out);font-weight:500}
-
-/* empty state */
-.empty{text-align:center;padding:60px 20px;color:var(--muted)}
-.empty h2{font-family:"Frank Ruhl Libre",serif;color:var(--ink);font-size:20px;margin:0 0 8px}
-
-/* fab */
-.fab{position:fixed;inset-inline-start:50%;transform:translateX(50%);bottom:calc(20px + env(safe-area-inset-bottom));
-  background:var(--ink);color:#fff;border:none;border-radius:26px;padding:14px 26px;font:inherit;font-weight:500;
-  box-shadow:0 6px 20px #1f2b2e40;cursor:pointer;z-index:20}
-@media(min-width:560px){.fab{inset-inline-start:auto;inset-inline-end:calc(50% - 270px + 16px);transform:none}}
+.empty{text-align:center;padding:50px 16px;color:var(--ink-soft)}
+.empty h2{font-size:18px;font-weight:700;color:var(--ink);margin:0 0 8px}
+.empty p{font-size:14px;line-height:1.6;margin:0 auto;max-width:300px}
 
 /* sheet */
-.scrim{position:fixed;inset:0;background:#1f2b2e66;opacity:0;pointer-events:none;transition:opacity .2s;z-index:40}
+.scrim{position:fixed;inset:0;background:rgba(27,40,69,.42);opacity:0;pointer-events:none;transition:opacity .22s;z-index:40}
 .scrim.on{opacity:1;pointer-events:auto}
-.sheet{position:fixed;inset-inline:0;bottom:0;background:var(--paper);border-radius:20px 20px 0 0;z-index:50;
-  transform:translateY(100%);transition:transform .26s cubic-bezier(.2,.8,.3,1);max-height:92vh;overflow-y:auto;
-  max-width:540px;margin:0 auto;padding-bottom:calc(24px + env(safe-area-inset-bottom))}
+.sheet{position:fixed;inset-inline:0;bottom:0;margin:0 auto;max-width:480px;background:var(--bg);
+  border-radius:26px 26px 0 0;z-index:50;transform:translateY(100%);
+  transition:transform .28s cubic-bezier(.16,1,.3,1);max-height:92vh;overflow-y:auto;
+  padding:0 20px calc(28px + env(safe-area-inset-bottom));box-shadow:0 -10px 40px -12px rgba(27,40,69,.3)}
 .sheet.on{transform:translateY(0)}
-@media(prefers-reduced-motion:reduce){.sheet{transition:none}.scrim{transition:none}}
-.grab{width:38px;height:4px;background:var(--line);border-radius:2px;margin:9px auto 4px}
-.spad{padding:8px 18px 0}
-.sheet h2{font-family:"Frank Ruhl Libre",serif;font-size:21px;margin:6px 0 16px}
+@media(prefers-reduced-motion:reduce){.sheet,.scrim,.progress-fill{transition:none}}
+.grab{width:40px;height:4px;background:var(--line-strong);border-radius:999px;margin:10px auto 2px}
+.sheet h2{font-size:20px;font-weight:700;letter-spacing:-.02em;margin:14px 0 4px}
+.sheet .sub{font-size:13px;color:var(--ink-soft);margin-bottom:18px}
 
 /* form */
-label{display:block;font-size:13.5px;color:var(--muted);margin:14px 0 5px}
-input[type=text],input[type=number],input[type=date],select,textarea{
-  width:100%;padding:12px 13px;border:1px solid var(--line);border-radius:11px;background:var(--card);
+label{display:block;font-size:12.5px;font-weight:500;color:var(--ink-soft);margin:16px 0 6px}
+input[type=text],input[type=number],input[type=date],select{
+  width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--surface);
   font:inherit;color:inherit;appearance:none}
-input:focus,select:focus,textarea:focus{outline:2px solid var(--level);outline-offset:-1px;border-color:transparent}
-button:focus-visible,.item:focus-visible{outline:2px solid var(--level);outline-offset:2px}
+input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+button:focus-visible,.item:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .chips{display:flex;flex-wrap:wrap;gap:7px}
-.chip{border:1px solid var(--line);background:var(--card);border-radius:20px;padding:8px 14px;font:inherit;font-size:14px;cursor:pointer;color:var(--muted)}
-.chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
-.hint{font-size:12.5px;color:var(--muted);margin-top:6px;line-height:1.45}
-.btn{width:100%;padding:14px;border:none;border-radius:12px;background:var(--level);color:#fff;font:inherit;font-weight:500;cursor:pointer;margin-top:22px}
-.btn.ghost{background:none;color:var(--muted);border:1px solid var(--line);margin-top:9px}
-.btn.danger{background:none;color:var(--out);border:1px solid #9A4A3D55;margin-top:9px}
-.btn:disabled{opacity:.45}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 14px;
+  font:inherit;font-size:13.5px;font-weight:500;color:var(--ink-soft);cursor:pointer;transition:all .18s}
+.chip.on{background:var(--ink);color:var(--cream);border-color:var(--ink)}
+.hint{font-size:12px;color:var(--ink-faint);margin-top:7px;line-height:1.5}
+.btn{width:100%;padding:15px;border:none;border-radius:16px;background:var(--ink);color:var(--cream);
+  font:inherit;font-size:15px;font-weight:600;cursor:pointer;margin-top:22px;transition:opacity .2s}
+.btn:active{opacity:.85}
+.btn.ghost{background:var(--surface);color:var(--ink-soft);border:1px solid var(--line);margin-top:10px}
+.btn.danger{background:var(--surface);color:var(--accent-deep);border:1px solid rgba(181,82,59,.3);margin-top:10px}
+.btn.accent{background:var(--accent)}
 
-/* detail */
-.readout{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:17px;margin-bottom:6px}
-.big{font-size:40px;font-weight:700;line-height:1.1}
-.big small{font-size:14px;font-weight:400;color:var(--muted)}
-.readline{color:var(--muted);font-size:14px;margin-top:4px}
-.kv{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line);font-size:14.5px}
-.kv:last-child{border:none}
-.kv span:first-child{color:var(--muted)}
-.hist{font-size:14px;color:var(--muted);display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line)}
-.weighbox{display:flex;gap:9px;align-items:stretch;margin-top:8px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:10px}
+.panel.dark{background:var(--ink);
+  background-image:radial-gradient(circle at 85% 15%, rgba(181,82,59,.32) 0%, transparent 55%);
+  border:none;color:var(--cream);text-align:center;box-shadow:0 8px 24px -10px rgba(27,40,69,.3)}
+.panel.dark .big{font-size:56px;font-weight:800;letter-spacing:-.05em;line-height:1;font-variant-numeric:tabular-nums}
+.panel.dark .big small{font-size:15px;font-weight:400;color:var(--cream-soft);letter-spacing:0}
+.panel.dark .line{font-size:13px;color:var(--cream-soft);margin-top:9px;line-height:1.5}
+.kv{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px}
+.kv:last-child{border-bottom:none}
+.kv span:first-child{color:var(--ink-soft)}
+.kv b{font-weight:600;font-variant-numeric:tabular-nums}
+.weighbox{display:flex;gap:9px;margin-top:6px}
 .weighbox input{flex:1}
-.weighbox button{flex:none;padding:0 20px;border:none;border-radius:11px;background:var(--level);color:#fff;font:inherit;font-weight:500;cursor:pointer}
-.toast{position:fixed;bottom:90px;inset-inline:0;margin:0 auto;width:max-content;max-width:88%;background:var(--ink);color:#fff;
-  padding:11px 18px;border-radius:22px;font-size:14.5px;opacity:0;transition:opacity .2s;z-index:60;pointer-events:none}
+.weighbox button{flex:none;padding:0 22px;border:none;border-radius:14px;background:var(--accent);color:#fff;
+  font:inherit;font-weight:600;cursor:pointer}
+.note{background:var(--accent-soft);border:1px solid rgba(181,82,59,.2);border-radius:14px;padding:13px 15px;
+  font-size:13px;color:var(--accent-deep);line-height:1.55;margin-top:16px}
+.toast{position:fixed;bottom:34px;inset-inline:0;margin:0 auto;width:max-content;max-width:85%;
+  background:var(--ink);color:var(--cream);padding:12px 20px;border-radius:999px;font-size:14px;font-weight:500;
+  opacity:0;transition:opacity .2s;z-index:60;pointer-events:none;box-shadow:0 8px 24px -8px rgba(27,40,69,.4)}
 .toast.on{opacity:1}
-.note{background:#2E6F6B12;border:1px solid #2E6F6B33;border-radius:11px;padding:12px 13px;font-size:13.5px;color:var(--ink);margin-top:14px;line-height:1.5}
 </style>
 </head>
 <body>
-
-<div class="wrap">
-  <header>
-    <div class="hrow">
-      <div>
-        <h1>מד מדף</h1>
-        <div class="sub" id="sub">טוען…</div>
-      </div>
-      <button class="iconbtn" id="settingsBtn" aria-label="הגדרות">
-        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.2.47.66.79 1.17.79H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-      </button>
-    </div>
-  </header>
+<div class="app">
+  <div class="header">
+    <h1 class="header-title">מד מדף</h1>
+    <button class="pill" id="settingsBtn">הגדרות</button>
+  </div>
+  <div id="top"></div>
+  <button class="addbtn" id="addBtn">+ מוצר חדש</button>
   <input class="search" id="search" type="text" placeholder="חיפוש" hidden>
   <div id="list"></div>
 </div>
-
-<button class="fab" id="addBtn">+ מוצר חדש</button>
 <div class="scrim" id="scrim"></div>
-<div class="sheet" id="sheet"><div class="grab"></div><div class="spad" id="sheetBody"></div></div>
+<div class="sheet" id="sheet"><div class="grab"></div><div id="sheetBody"></div></div>
 <div class="toast" id="toast"></div>
 
 <script type="module">
-/* ---------- knowledge: densities (g/ml) [min, typical, max] + typical grams per use ---------- */
+/* ============ ידע: צפיפות (גרם למ״ל) [מינימום, אופייני, מקסימום] + גרם לשימוש ============ */
 const TYPES = {
-  serum:    {label:'סרום',            d:[0.98,1.03,1.08], gpu:0.4},
-  cream:    {label:'קרם פנים',        d:[0.88,0.95,1.02], gpu:0.6},
-  rich:     {label:'קרם עשיר / באלם', d:[0.85,0.92,0.99], gpu:0.8},
-  eye:      {label:'קרם עיניים',      d:[0.90,0.97,1.04], gpu:0.25},
-  oil:      {label:'שמן',             d:[0.84,0.89,0.93], gpu:0.4},
-  gel:      {label:'ג׳ל',             d:[0.98,1.02,1.06], gpu:0.7},
-  mask:     {label:'מסכה',            d:[1.02,1.15,1.30], gpu:8},
-  cleanser: {label:'ניקוי / סבון פנים',d:[0.97,1.02,1.07], gpu:1.5},
-  spf:      {label:'הגנה מהשמש',      d:[0.98,1.05,1.12], gpu:1.2},
-  toner:    {label:'טונר / מי פנים',  d:[0.99,1.00,1.02], gpu:2},
-  body:     {label:'קרם גוף',         d:[0.92,0.98,1.04], gpu:4},
+  cream:    {label:'קרם פנים',          d:[0.88,0.95,1.02], gpu:0.6},
+  rich:     {label:'קרם עשיר / באלם',   d:[0.85,0.92,0.99], gpu:0.8},
+  serum:    {label:'סרום',              d:[0.98,1.03,1.08], gpu:0.4},
+  eye:      {label:'קרם עיניים',        d:[0.90,0.97,1.04], gpu:0.25},
+  oil:      {label:'שמן',               d:[0.84,0.89,0.93], gpu:0.4},
+  gel:      {label:'ג׳ל',               d:[0.98,1.02,1.06], gpu:0.7},
+  mask:     {label:'מסכה',              d:[1.02,1.15,1.30], gpu:8},
+  cleanser: {label:'ניקוי פנים',        d:[0.97,1.02,1.07], gpu:1.5},
+  spf:      {label:'הגנה מהשמש',        d:[0.98,1.05,1.12], gpu:1.2},
+  toner:    {label:'טונר',              d:[0.99,1.00,1.02], gpu:2},
+  body:     {label:'קרם גוף',           d:[0.92,0.98,1.04], gpu:4},
 };
-// residue that never comes out, by container
-const VESSEL = {jar:{label:'צנצנת',r:.02}, tube:{label:'טיוב',r:.06}, pump:{label:'משאבה',r:.08}, dropper:{label:'טפטפת',r:.04}, spray:{label:'ספריי',r:.05}};
-const OVERFILL = 1.06;  // brands fill up to ~6% over the declared volume
-const DAY = 86400000;
+const VESSEL = {jar:{label:'צנצנת',r:.02}, tube:{label:'טיוב',r:.06}, pump:{label:'משאבה',r:.08},
+                dropper:{label:'טפטפת',r:.04}, spray:{label:'ספריי',r:.05}};
+const OVERFILL = 1.06, DAY = 86400000;
 
-/* ---------- storage ---------- */
-const DB = (()=>{
-  let p;
+/* ============ אחסון ============ */
+const DB = (()=>{ let p;
   const open = () => p ||= new Promise((res,rej)=>{
     const r = indexedDB.open('shelf-life',1);
     r.onupgradeneeded = e => { const db = e.target.result;
       if(!db.objectStoreNames.contains('products')) db.createObjectStore('products',{keyPath:'id'});
       if(!db.objectStoreNames.contains('meta')) db.createObjectStore('meta',{keyPath:'k'}); };
-    r.onsuccess = e => res(e.target.result); r.onerror = e => rej(e.target.error);
-  });
+    r.onsuccess = e => res(e.target.result); r.onerror = e => rej(e.target.error); });
   const tx = async (store,mode,fn) => { const db = await open();
     return new Promise((res,rej)=>{ const t = db.transaction(store,mode); const rq = fn(t.objectStore(store));
       t.oncomplete = () => res(rq && rq.result); t.onerror = () => rej(t.error); }); };
-  return {
-    all:  () => tx('products','readonly', s=>s.getAll()),
-    put:  o  => tx('products','readwrite',s=>s.put(o)),
-    del:  id => tx('products','readwrite',s=>s.delete(id)),
-    meta: k  => tx('meta','readonly', s=>s.get(k)),
-    setMeta:(k,v)=>tx('meta','readwrite',s=>s.put({k,v})),
-  };
+  return { all:()=>tx('products','readonly',s=>s.getAll()), put:o=>tx('products','readwrite',s=>s.put(o)),
+           del:id=>tx('products','readwrite',s=>s.delete(id)), meta:k=>tx('meta','readonly',s=>s.get(k)),
+           setMeta:(k,v)=>tx('meta','readwrite',s=>s.put({k,v})) };
 })();
 
-let products = [], settings = {leadDays:30, notify:false}, learned = {};
+let products = [], settings = {leadDays:30}, learned = {};
 
-/* ---------- math ---------- */
+/* ============ חישוב ============ */
+const clamp = x => Math.max(0, Math.min(1, x));
 function densityFor(type){
-  const base = TYPES[type].d;
-  const samples = learned[type] || [];
-  if(samples.length >= 2){
-    const m = samples.reduce((a,b)=>a+b,0)/samples.length;
-    return [m*0.97, m, m*1.03];          // measured → much tighter band
-  }
-  return base;
+  const s = learned[type] || [];
+  if(s.length >= 2){ const m = s.reduce((a,b)=>a+b,0)/s.length; return [m*.97, m, m*1.03]; }
+  return TYPES[type].d;
 }
 function stats(p){
   const t = TYPES[p.type], d = densityFor(p.type);
   let cMin = p.ml*d[0], cTyp = p.ml*d[1]*1.02, cMax = p.ml*d[2]*OVERFILL, exact = false;
   if(p.emptyWeight != null){ cMin = cTyp = cMax = Math.max(1, p.initialGross - p.emptyWeight); exact = true; }
 
-  const ws = [{w:p.initialGross, t:p.startDate}, ...(p.weighings||[])].sort((a,b)=>a.t-b.t);
+  const base = {w:p.initialGross, t:p.openedAt ?? p.weighedAt};
+  const ws = [base, ...(p.weighings||[])].sort((a,b)=>a.t-b.t);
   const last = ws[ws.length-1];
   const used = Math.max(0, p.initialGross - last.w);
 
-  const pct     = clamp(1 - used/cTyp);
-  const pctLow  = clamp(1 - used/cMin);
-  const pctHigh = clamp(1 - used/cMax);
-
   const residue = VESSEL[p.vessel||'jar'].r;
-  const usablePct = clamp((pct - residue)/(1-residue));
+  const un = pc => clamp((clamp(1-used/pc) - residue)/(1-residue));
+  const pct = un(cTyp), lo = un(cMin), hi = un(cMax);
 
   const gramsLeft = Math.max(0, cTyp - used);
-  const mlLeft = Math.min(p.ml, gramsLeft / d[1]);   // never show more than the label claims
+  const mlLeft = Math.min(p.ml, gramsLeft/d[1]);
 
-  // rate: measured if we have a real span, otherwise from her stated routine
-  const days = (last.t - ws[0].t)/DAY;
-  let gPerDay = null, rateSrc = null;
-  if(used >= 2 && days >= 4){ gPerDay = used/days; rateSrc = 'measured'; }
-  else if(p.usesPerWeek){ gPerDay = p.usesPerWeek * t.gpu / 7; rateSrc = 'guess'; }
-
+  // קצב: מדוד אם יש מרווח אמיתי, אחרת לפי ההרגל שהוזן, ואם לא הוזן — אין תחזית
+  let gPerDay = null, src = null;
+  if(p.status === 'open'){
+    const days = (last.t - ws[0].t)/DAY;
+    if(used >= 2 && days >= 4){ gPerDay = used/days; src = 'measured'; }
+    else if(p.usesPerWeek){ gPerDay = p.usesPerWeek * t.gpu / 7; src = 'guess'; }
+  }
   const usableG = Math.max(0, gramsLeft - cTyp*residue);
   const daysLeft = gPerDay ? Math.round(usableG/gPerDay) : null;
-  const runOut = daysLeft != null ? last.t + daysLeft*DAY : null;
 
-  return {pct,pctLow,pctHigh,usablePct,gramsLeft,mlLeft,daysLeft,runOut,rateSrc,gPerDay,exact,
-          cTyp,used,last,weighCount:ws.length,residue};
+  return {pct,lo,hi,gramsLeft,mlLeft,daysLeft,gPerDay,src,exact,used,last,residue,cTyp,weighings:ws};
 }
-const clamp = x => Math.max(0, Math.min(1, x));
-const pctTxt = s => s.usablePct <= 0.02 ? 'ריק' : Math.round(s.usablePct*100)+'%';
-function rangeTxt(s){
-  if(s.exact) return 'מדויק';
-  const lo = Math.round(clamp((s.pctLow-s.residue)/(1-s.residue))*100);
-  const hi = Math.round(clamp((s.pctHigh-s.residue)/(1-s.residue))*100);
-  return hi-lo <= 2 ? '' : `טווח ${lo}–${hi}%`;
-}
+const pctTxt = s => s.pct <= .02 ? 'ריק' : Math.round(s.pct*100)+'%';
+const rangeTxt = s => s.exact ? 'מדויק'
+  : Math.round(s.hi*100)-Math.round(s.lo*100) <= 2 ? ''
+  : `טווח ${Math.round(s.lo*100)}–${Math.round(s.hi*100)}%`;
 function leftTxt(s){
-  if(s.daysLeft == null) return 'שקילה נוספת תיתן תחזית';
+  if(s.daysLeft == null) return 'אין עדיין תחזית';
   if(s.daysLeft <= 0) return 'נגמר';
   if(s.daysLeft < 14) return `עוד כ־${s.daysLeft} ימים`;
   if(s.daysLeft < 70) return `עוד כ־${Math.round(s.daysLeft/7)} שבועות`;
   return `עוד כ־${Math.round(s.daysLeft/30)} חודשים`;
 }
-
-/* ---------- list ---------- */
+const esc = s => (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt = t => new Date(t).toLocaleDateString('he-IL',{day:'numeric',month:'short',year:'2-digit'});
+const today = () => new Date().toISOString().slice(0,10);
 const $ = id => document.getElementById(id);
+
+/* ============ מסך הבית ============ */
 function render(){
-  const q = ($('search').value||'').trim();
-  const active = products.filter(p=>p.status!=='done');
-  $('search').hidden = active.length < 8;
-  const shown = q ? active.filter(p=>(p.name+' '+(p.brand||'')).includes(q)) : active;
+  const open   = products.filter(p=>p.status==='open');
+  const sealed = products.filter(p=>p.status==='sealed');
+  const done   = products.filter(p=>p.status==='done');
 
-  const rows = shown.map(p=>({p,s:stats(p)}))
-    .sort((a,b)=>(a.s.daysLeft ?? 9e5)-(b.s.daysLeft ?? 9e5) || a.s.usablePct-b.s.usablePct);
-
+  const rows = open.map(p=>({p,s:stats(p)}))
+    .sort((a,b)=>(a.s.daysLeft ?? 9e5)-(b.s.daysLeft ?? 9e5) || a.s.pct-b.s.pct);
   const soon = rows.filter(r=>r.s.daysLeft!=null && r.s.daysLeft <= settings.leadDays);
   const rest = rows.filter(r=>!soon.includes(r));
-  const done = products.filter(p=>p.status==='done');
+  const out  = soon.filter(r=>r.s.daysLeft<=0);
 
-  $('sub').textContent = active.length
-    ? `${active.length} מוצרים · ${soon.length ? soon.length+' עומדים להיגמר' : 'הכל בשליטה'}`
-    : 'עדיין ריק';
+  /* hero + stats */
+  let hero;
+  if(!products.length){
+    hero = `<div class="hero"><div class="hero-label">מד מדף</div>
+      <div class="hero-number word">מדף ריק</div>
+      <div class="hero-sub">מתחילים ממוצר אחד</div></div>`;
+  } else if(soon.length){
+    const n = soon[0];
+    hero = `<div class="hero"><div class="hero-label">להזמין בקרוב</div>
+      <div class="hero-number">${soon.length}</div>
+      <div class="hero-sub">הכי דחוף: ${esc(n.p.name)} · ${leftTxt(n.s)}</div></div>`;
+  } else {
+    const next = rows.find(r=>r.s.daysLeft!=null);
+    hero = `<div class="hero"><div class="hero-label">מצב המדף</div>
+      <div class="hero-number word">הכל בשליטה</div>
+      <div class="hero-sub">${next ? `הבא בתור: ${esc(next.p.name)} · ${leftTxt(next.s)}`
+        : 'עוד אין מספיק נתונים לתחזית'}</div></div>`;
+  }
+  $('top').innerHTML = hero + `
+    <div class="stats">
+      <div class="stat"><div class="stat-value">${open.length}</div><div class="stat-label">בשימוש</div></div>
+      <div class="stat"><div class="stat-value">${sealed.length}</div><div class="stat-label">סגורים במלאי</div></div>
+    </div>` + (out.length
+      ? `<div class="banner"><span>●</span><span>${out.map(r=>esc(r.p.name)).join(' · ')} — לפי החישוב נגמרו</span></div>` : '');
+
+  /* list */
+  const q = ($('search').value||'').trim();
+  $('search').hidden = products.length < 8;
+  const match = p => !q || (p.name+' '+(p.brand||'')).includes(q);
 
   let h = '';
-  if(!active.length && !done.length){
-    h = `<div class="empty"><h2>שקלי מוצר חדש לפני השימוש הראשון</h2>
-      <p>זו השקילה שכל השאר נשען עליה. אחרי זה שוקלים מתי שבא לך, ורואים כמה נשאר.</p></div>`;
-  } else {
-    if(soon.length) h += `<div class="group">להזמין בקרוב</div>` + soon.map(card).join('');
-    if(rest.length) h += (soon.length?`<div class="group">שאר המדף</div>`:'') + rest.map(card).join('');
-    if(done.length && !q) h += `<div class="group">נגמרו</div>` + done.map(p=>`
-      <button class="item" data-id="${p.id}" style="opacity:.6">
-        <div class="itop"><div><div class="name">${esc(p.name)}</div>
-        <div class="meta">${esc(p.brand||'')}${p.brand?' · ':''}${TYPES[p.type].label} · ${p.ml} מ״ל</div></div></div>
-      </button>`).join('');
-  }
+  const S = t => `<div class="section">${t}</div>`;
+  const shownSoon = soon.filter(r=>match(r.p)), shownRest = rest.filter(r=>match(r.p));
+  if(shownSoon.length) h += S('להזמין בקרוב') + shownSoon.map(card).join('');
+  if(shownRest.length) h += S(shownSoon.length?'שאר המדף':'בשימוש') + shownRest.map(card).join('');
+  const sealedShown = sealed.filter(match);
+  if(sealedShown.length) h += S('סגורים, ממתינים') + sealedShown.map(p=>`
+    <button class="item sealed" data-id="${p.id}">
+      <div class="itop"><div><div class="name">${esc(p.name)}</div><div class="meta">${metaOf(p)}</div></div>
+        <div class="pct" style="font-size:14px;font-weight:600;color:var(--ink-soft);padding-top:5px">טרם נפתח</div></div>
+    </button>`).join('');
+  const doneShown = done.filter(match);
+  if(doneShown.length) h += S('נגמרו') + doneShown.map(p=>`
+    <button class="item done" data-id="${p.id}">
+      <div class="itop"><div><div class="name">${esc(p.name)}</div><div class="meta">${metaOf(p)}</div></div></div>
+    </button>`).join('');
+  if(!products.length) h = `<div class="empty"><h2>שוקלים לפני השימוש הראשון</h2>
+    <p>השקילה של המוצר הסגור היא הבסיס לכל החישוב. אחרי זה שוקלים מתי שבא לך, ורואים כמה נשאר.</p></div>`;
+
   $('list').innerHTML = h;
   $('list').querySelectorAll('.item').forEach(b=>b.onclick=()=>openDetail(b.dataset.id));
 }
+const metaOf = p => `${esc(p.brand||'')}${p.brand?' · ':''}${TYPES[p.type].label} · ${p.ml} מ״ל`;
 function card({p,s}){
-  const cls = s.usablePct<=0.02 ? 'out' : (s.daysLeft!=null && s.daysLeft<=settings.leadDays ? 'low' : '');
-  const lo = clamp((s.pctLow-s.residue)/(1-s.residue))*100;
-  const hi = clamp((s.pctHigh-s.residue)/(1-s.residue))*100;
-  const r = rangeTxt(s);
+  const cls = s.pct<=.02 ? 'out' : (s.daysLeft!=null && s.daysLeft<=settings.leadDays ? 'low' : '');
   return `<button class="item ${cls}" data-id="${p.id}">
     <div class="itop">
-      <div><div class="name">${esc(p.name)}</div>
-        <div class="meta">${esc(p.brand||'')}${p.brand?' · ':''}${TYPES[p.type].label} · ${p.ml} מ״ל</div></div>
-      <div class="pct num">${pctTxt(s)}</div>
+      <div><div class="name">${esc(p.name)}</div><div class="meta">${metaOf(p)}</div></div>
+      <div class="pct">${pctTxt(s)}</div>
     </div>
-    <div class="bar">
-      <div class="band" style="right:${lo}%;width:${Math.max(0,hi-lo)}%"></div>
-      <div class="fill" style="width:${lo}%"></div>
+    <div class="progress">
+      <div class="progress-band" style="right:${s.lo*100}%;width:${Math.max(0,(s.hi-s.lo)*100)}%"></div>
+      <div class="progress-fill" style="width:${s.lo*100}%"></div>
     </div>
-    <div class="foot"><span>${r}</span>
-      <span class="${cls==='out'?'over':cls==='low'?'warn':''}">${leftTxt(s)}</span></div>
+    <div class="foot"><span>${rangeTxt(s)}</span><span class="state">${leftTxt(s)}</span></div>
   </button>`;
 }
-const esc = s => (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
-/* ---------- sheet plumbing ---------- */
+/* ============ גיליון ============ */
 function openSheet(html, after){
   $('sheetBody').innerHTML = html; $('sheet').classList.add('on'); $('scrim').classList.add('on');
-  after && after();
+  $('sheet').scrollTop = 0; after && after();
 }
-function closeSheet(){ $('sheet').classList.remove('on'); $('scrim').classList.remove('on'); }
+const closeSheet = () => { $('sheet').classList.remove('on'); $('scrim').classList.remove('on'); };
 $('scrim').onclick = closeSheet;
-function toast(t){ const el=$('toast'); el.textContent=t; el.classList.add('on'); setTimeout(()=>el.classList.remove('on'),2200); }
-const today = () => new Date().toISOString().slice(0,10);
+const toast = t => { const el=$('toast'); el.textContent=t; el.classList.add('on'); setTimeout(()=>el.classList.remove('on'),2300); };
+function chips(id){ const el=$(id); el.onclick=e=>{ const b=e.target.closest('.chip'); if(!b)return;
+  el.querySelectorAll('.chip').forEach(c=>c.classList.remove('on')); b.classList.add('on');
+  el.dispatchEvent(new CustomEvent('pick',{detail:b.dataset.v})); }; }
+const pick = id => $(id).querySelector('.chip.on')?.dataset.v;
 
-/* ---------- add / edit ---------- */
+/* ============ הוספה ועריכה ============ */
 function openForm(p){
-  const edit = !!p; p = p || {type:'cream', vessel:'jar', usesPerWeek:14, startDate:Date.now()};
+  const edit = !!p;
+  p = p || {type:'cream', vessel:'jar', usesPerWeek:null, status:'sealed', weighedAt:Date.now(), openedAt:null};
   openSheet(`
-    <h2>${edit?'עריכת מוצר':'מוצר חדש'}</h2>
+    <h2>${edit?'עריכת פרטים':'מוצר חדש'}</h2>
+    <div class="sub">${edit?'':'שוקלים את האריזה הסגורה, עם המכסה, לפני השימוש הראשון.'}</div>
     <label for="f_name">שם המוצר</label>
     <input id="f_name" type="text" value="${esc(p.name||'')}" placeholder="קרם לילה">
     <label for="f_brand">מותג</label>
@@ -334,87 +373,117 @@ function openForm(p){
     <label>סוג</label>
     <div class="chips" id="f_type">${Object.entries(TYPES).map(([k,v])=>
       `<button type="button" class="chip ${p.type===k?'on':''}" data-v="${k}">${v.label}</button>`).join('')}</div>
+    <div class="hint">הסוג קובע את הצפיפות בחישוב. ללכת לפי המרקם, לא לפי מה שכתוב על האריזה.</div>
     <label>אריזה</label>
     <div class="chips" id="f_vessel">${Object.entries(VESSEL).map(([k,v])=>
       `<button type="button" class="chip ${(p.vessel||'jar')===k?'on':''}" data-v="${k}">${v.label}</button>`).join('')}</div>
-    <div class="hint">משאבות וטיובים משאירים שארית שלא יוצאת. זה נלקח בחשבון.</div>
+    <div class="hint">משאבה וטיוב משאירים שארית שלא יוצאת. זה מנוכה מהחישוב.</div>
     <div class="row2">
       <div><label for="f_ml">נפח מוצהר (מ״ל)</label><input id="f_ml" type="number" inputmode="decimal" step="any" value="${p.ml??''}"></div>
       <div><label for="f_gross">משקל מלא (גרם)</label><input id="f_gross" type="number" inputmode="decimal" step="any" value="${p.initialGross??''}"></div>
     </div>
-    <div class="hint">${edit?'שינוי המשקל המלא יחשב מחדש את כל ההיסטוריה.':'שקלי את המוצר הסגור, לפני השימוש הראשון, עם המכסה.'}</div>
-    <label>כמה משתמשים בו</label>
-    <div class="chips" id="f_uses">
-      ${[[14,'פעמיים ביום'],[7,'פעם ביום'],[3,'3 בשבוע'],[2,'פעמיים בשבוע'],[1,'פעם בשבוע']]
-        .map(([v,l])=>`<button type="button" class="chip ${p.usesPerWeek==v?'on':''}" data-v="${v}">${l}</button>`).join('')}
+    <label>המצב שלו עכשיו</label>
+    <div class="chips" id="f_status">
+      <button type="button" class="chip ${p.status==='sealed'?'on':''}" data-v="sealed">עוד לא פתחתי</button>
+      <button type="button" class="chip ${p.status!=='sealed'?'on':''}" data-v="open">כבר בשימוש</button>
     </div>
-    <label for="f_date">תאריך הפתיחה</label>
-    <input id="f_date" type="date" value="${new Date(p.startDate).toISOString().slice(0,10)}">
+    <div class="hint" id="f_statusHint"></div>
+    <div id="f_openBlock" hidden>
+      <label for="f_date">מתי נפתח</label>
+      <input id="f_date" type="date" value="${new Date(p.openedAt||Date.now()).toISOString().slice(0,10)}">
+      <label>כמה משתמשים בו</label>
+      <div class="chips" id="f_uses">
+        ${[['','עדיין לא יודעת'],[14,'פעמיים ביום'],[7,'פעם ביום'],[3,'3 בשבוע'],[2,'פעמיים בשבוע'],[1,'פעם בשבוע']]
+          .map(([v,l])=>`<button type="button" class="chip ${String(p.usesPerWeek??'')===String(v)?'on':''}" data-v="${v}">${l}</button>`).join('')}
+      </div>
+      <div class="hint">זה רק כדי לתת תחזית ראשונית. אחרי שקילה שנייה היא מוחלפת בקצב אמיתי שנמדד, וגם בלי תשובה כאן הכל ימשיך לעבוד.</div>
+    </div>
     <button class="btn" id="f_save">${edit?'שמירת שינויים':'הוספה למדף'}</button>
     ${edit?'':'<button class="btn ghost" id="f_cancel">ביטול</button>'}
   `, ()=>{
-    chips('f_type'); chips('f_vessel'); chips('f_uses');
+    chips('f_type'); chips('f_vessel'); chips('f_status'); chips('f_uses');
+    const sync = v => {
+      $('f_openBlock').hidden = v !== 'open';
+      $('f_statusHint').textContent = v === 'open'
+        ? 'החישוב יתייחס למשקל שהזנת כאילו נמדד ביום הפתיחה.'
+        : 'יישב במלאי בלי תחזיות ובלי התראות, עד שתסמני שהתחלת להשתמש.';
+    };
+    sync(p.status==='sealed'?'sealed':'open');
+    $('f_status').addEventListener('pick', e=>sync(e.detail));
     $('f_cancel') && ($('f_cancel').onclick = closeSheet);
     $('f_save').onclick = async () => {
-      const ml = +$('f_ml').value, gross = +$('f_gross').value, name = $('f_name').value.trim();
+      const name = $('f_name').value.trim(), ml = +$('f_ml').value, gross = +$('f_gross').value;
       if(!name || !(ml>0) || !(gross>0)) return toast('חסר שם, נפח או משקל');
-      const type = pick('f_type'), vessel = pick('f_vessel');
-      const d = densityFor(type);
-      if(gross < ml*d[0]*0.9) return toast('המשקל נמוך מהתוכן בלבד — לבדוק שוב');
-      const o = {
-        id: p.id || crypto.randomUUID(),
-        name, brand:$('f_brand').value.trim(), type, vessel, ml,
-        initialGross: gross,
-        usesPerWeek: +pick('f_uses'),
-        startDate: new Date($('f_date').value || today()).getTime(),
-        weighings: p.weighings||[], status: p.status||'open',
-        emptyWeight: p.emptyWeight ?? null, notifiedAt: p.notifiedAt ?? null,
-      };
+      const type = pick('f_type'), status = pick('f_status');
+      if(gross < ml*densityFor(type)[0]*0.9) return toast('המשקל נמוך מהתוכן בלבד — לבדוק שוב');
+      const uses = status==='open' ? pick('f_uses') : (p.usesPerWeek ?? '');
+      const o = { id:p.id||crypto.randomUUID(), name, brand:$('f_brand').value.trim(), type,
+        vessel:pick('f_vessel'), ml, initialGross:gross, status,
+        usesPerWeek: uses ? +uses : null,
+        weighedAt: p.weighedAt || Date.now(),
+        openedAt: status==='open' ? new Date($('f_date').value||today()).getTime() : null,
+        weighings: p.weighings||[], emptyWeight: p.emptyWeight ?? null, notifiedAt: p.notifiedAt ?? null };
       await DB.put(o); await load(); closeSheet(); toast(edit?'נשמר':'נוסף למדף');
     };
   });
 }
-function chips(id){ const el=$(id); el.onclick=e=>{ const b=e.target.closest('.chip'); if(!b)return;
-  el.querySelectorAll('.chip').forEach(c=>c.classList.remove('on')); b.classList.add('on'); }; }
-const pick = id => $(id).querySelector('.chip.on')?.dataset.v;
 
-/* ---------- detail ---------- */
+/* ============ פרטי מוצר ============ */
 function openDetail(id){
   const p = products.find(x=>x.id===id); if(!p) return;
   const s = stats(p);
-  const ws = [{w:p.initialGross,t:p.startDate,first:true}, ...(p.weighings||[])].sort((a,b)=>b.t-a.t);
+  if(p.status === 'sealed'){
+    return openSheet(`
+      <h2>${esc(p.name)}</h2><div class="sub">${metaOf(p)} · ${VESSEL[p.vessel].label}</div>
+      <div class="panel dark"><div class="big word" style="font-size:32px">סגור במלאי</div>
+        <div class="line">נשקל ב־${fmt(p.weighedAt)} · ${p.initialGross} גרם.<br>הספירה תתחיל ביום שתסמני שפתחת.</div></div>
+      <button class="btn accent" id="s_open">פתחתי אותו היום</button>
+      <button class="btn ghost" id="s_edit">עריכת פרטים</button>
+      <button class="btn danger" id="s_del">מחיקה</button>
+    `, ()=>{
+      $('s_open').onclick = async () => { p.status='open'; p.openedAt=Date.now(); await DB.put(p);
+        await load(); openDetail(id); toast('הספירה התחילה'); };
+      $('s_edit').onclick = ()=>openForm(p);
+      $('s_del').onclick = async () => { if(!confirm('למחוק את '+p.name+'?')) return;
+        await DB.del(p.id); await load(); closeSheet(); toast('נמחק'); };
+    });
+  }
   const done = p.status==='done';
+  const hist = s.weighings.slice().reverse();
   openSheet(`
-    <h2>${esc(p.name)}</h2>
-    <div class="meta" style="margin:-10px 0 14px">${esc(p.brand||'')}${p.brand?' · ':''}${TYPES[p.type].label} · ${p.ml} מ״ל · ${VESSEL[p.vessel||'jar'].label}</div>
-    ${done ? `<div class="readout"><div class="big num">נגמר</div>
-        <div class="readline">${p.emptyWeight!=null?`אריזה ריקה: ${p.emptyWeight} גרם — הצפיפות האמיתית נשמרה ומשפרת חישובים עתידיים`:'בלי שקילה של האריזה הריקה'}</div></div>`
-    : `<div class="readout">
-        <div class="big num">${pctTxt(s)} <small>נשארו</small></div>
-        <div class="readline">${s.exact?'חישוב מדויק':rangeTxt(s)||'הערכה'} · כ־${s.mlLeft.toFixed(1)} מ״ל · ${leftTxt(s)}</div>
+    <h2>${esc(p.name)}</h2><div class="sub">${metaOf(p)} · ${VESSEL[p.vessel||'jar'].label}</div>
+    ${done ? `<div class="panel dark"><div class="big word" style="font-size:32px">נגמר</div>
+        <div class="line">${p.emptyWeight!=null
+          ? `אריזה ריקה: ${p.emptyWeight} גרם. הצפיפות האמיתית נשמרה ומדייקת כל מוצר חדש מהסוג הזה.`
+          : 'בלי שקילה של האריזה הריקה.'}</div></div>`
+    : `<div class="panel dark">
+        <div class="big">${pctTxt(s)}<small> נשארו</small></div>
+        <div class="line">${s.exact?'חישוב מדויק':rangeTxt(s)||'הערכה'} · כ־${s.mlLeft.toFixed(1)} מ״ל · ${leftTxt(s)}</div>
        </div>
-       <div class="readout">
+       <div class="panel">
          <label for="d_w" style="margin-top:0">שקילה חדשה (גרם)</label>
          <div class="weighbox"><input id="d_w" type="number" inputmode="decimal" step="any" placeholder="${s.last.w}">
            <button id="d_add">שמירה</button></div>
-         ${s.rateSrc==='guess'?`<div class="hint">התחזית כרגע מבוססת על הרגלי השימוש שהזנת. השקילה הבאה תחליף אותה במדידה אמיתית.</div>`:
-           s.gPerDay?`<div class="hint">קצב מדוד: ${s.gPerDay.toFixed(2)} גרם ליום.</div>`:''}
+         <div class="hint">${
+           s.src==='measured' ? `קצב מדוד: ${s.gPerDay.toFixed(2)} גרם ליום.` :
+           s.src==='guess'    ? 'התחזית מבוססת כרגע על הרגלי השימוש שהזנת. השקילה הבאה תחליף אותה במדידה.' :
+           'עוד אין תחזית. שקילה נוספת בעוד כמה ימים תיתן קצב אמיתי.'}</div>
        </div>`}
-    <div class="readout">
-      <div class="kv"><span>משקל מלא בהתחלה</span><span class="num">${p.initialGross} גרם</span></div>
-      <div class="kv"><span>נפתח</span><span class="num">${fmt(p.startDate)}</span></div>
-      <div class="kv"><span>נוצל עד כה</span><span class="num">${s.used.toFixed(1)} גרם</span></div>
-      ${ws.map(w=>`<div class="hist"><span>${fmt(w.t)}${w.first?' · שקילה ראשונה':''}</span><span class="num">${w.w} גרם</span></div>`).join('')}
+    <div class="panel">
+      <div class="kv"><span>משקל מלא</span><b>${p.initialGross} גרם</b></div>
+      <div class="kv"><span>נפתח</span><b>${p.openedAt?fmt(p.openedAt):'—'}</b></div>
+      <div class="kv"><span>נוצל</span><b>${s.used.toFixed(1)} גרם</b></div>
+      ${hist.map((w,i)=>`<div class="kv"><span>${fmt(w.t)}${i===hist.length-1?' · ראשונה':''}</span><b>${w.w} גרם</b></div>`).join('')}
     </div>
-    ${done?'':`<button class="btn" id="d_finish">המוצר נגמר</button>`}
+    ${done?'':`<button class="btn ghost" id="d_finish">המוצר נגמר</button>`}
     <button class="btn ghost" id="d_edit">עריכת פרטים</button>
     <button class="btn danger" id="d_del">מחיקה</button>
   `, ()=>{
     $('d_add') && ($('d_add').onclick = async () => {
-      const w = +$('d_w').value; if(!(w>0)) return toast('להקליד משקל');
+      const w = +$('d_w').value;
+      if(!(w>0)) return toast('להקליד משקל');
       if(w > p.initialGross + 1) return toast('כבד יותר מהמשקל ההתחלתי');
-      p.weighings = [...(p.weighings||[]), {w, t: Date.now()}];
-      p.notifiedAt = null;
+      p.weighings = [...(p.weighings||[]), {w, t:Date.now()}]; p.notifiedAt = null;
       await DB.put(p); await load(); openDetail(id); toast('נשמר');
     });
     $('d_finish') && ($('d_finish').onclick = ()=>finishFlow(p));
@@ -423,61 +492,61 @@ function openDetail(id){
       await DB.del(p.id); await load(); closeSheet(); toast('נמחק'); };
   });
 }
-const fmt = t => new Date(t).toLocaleDateString('he-IL',{day:'numeric',month:'short',year:'2-digit'});
 
-/* ---------- finish: learn the true density ---------- */
+/* ============ סיום מוצר — כאן לומדים צפיפות אמיתית ============ */
 function finishFlow(p){
   openSheet(`
     <h2>${esc(p.name)} נגמר</h2>
-    <div class="note">שקילה של האריזה הריקה היא מה שהופך את ההערכות למדידה. היא מלמדת את החישוב מה הצפיפות האמיתית של ${TYPES[p.type].label}, וכל מוצר חדש מהסוג הזה יהיה מדויק יותר.</div>
+    <div class="note">שקילה של האריזה הריקה היא מה שהופך הערכה למדידה. היא מלמדת את החישוב מה הצפיפות האמיתית של ${TYPES[p.type].label}, וכל מוצר חדש מהסוג הזה יהיה מדויק יותר.</div>
     <label for="e_w">משקל האריזה הריקה (גרם)</label>
-    <input id="e_w" type="number" inputmode="decimal" step="any" placeholder="שוטפת, מייבשת, שוקלת">
-    <div class="hint">אפשר גם לדלג — התיעוד פשוט יישאר משוער.</div>
+    <input id="e_w" type="number" inputmode="decimal" step="any" placeholder="לשטוף, לייבש, לשקול">
     <button class="btn" id="e_save">שמירה לארכיון</button>
     <button class="btn ghost" id="e_skip">לדלג ולסמן כנגמר</button>
     <button class="btn danger" id="e_del">לא אקנה שוב — למחוק</button>
   `, ()=>{
-    const close = async () => { await load(); closeSheet(); };
+    const done = async () => { await load(); closeSheet(); };
     $('e_save').onclick = async () => {
       const w = +$('e_w').value;
       if(!(w>0) || w >= p.initialGross) return toast('משקל האריזה צריך להיות קטן מהמשקל המלא');
-      p.emptyWeight = w; p.status='done'; p.doneAt=Date.now();
-      await DB.put(p); await learn(p.type, (p.initialGross-w)/p.ml);
-      await close(); toast('נשמר. החישוב לסוג הזה השתפר');
+      p.emptyWeight = w; p.status='done'; p.doneAt = Date.now();
+      await DB.put(p); await learn(p.type,(p.initialGross-w)/p.ml);
+      await done(); toast('נשמר. החישוב לסוג הזה השתפר');
     };
-    $('e_skip').onclick = async () => { p.status='done'; p.doneAt=Date.now(); await DB.put(p); await close(); toast('סומן כנגמר'); };
+    $('e_skip').onclick = async () => { p.status='done'; p.doneAt=Date.now(); await DB.put(p); await done(); toast('סומן כנגמר'); };
     $('e_del').onclick = async () => {
       const w = +$('e_w').value;
-      if(w>0 && w<p.initialGross) await learn(p.type,(p.initialGross-w)/p.ml); // keep the lesson, drop the product
-      await DB.del(p.id); await close(); toast('נמחק');
+      if(w>0 && w<p.initialGross) await learn(p.type,(p.initialGross-w)/p.ml);
+      await DB.del(p.id); await done(); toast('נמחק');
     };
   });
 }
 async function learn(type, density){
-  if(!(density>0.6 && density<1.6)) return;         // sanity guard
+  if(!(density>0.6 && density<1.6)) return;
   learned[type] = [...(learned[type]||[]), +density.toFixed(4)].slice(-8);
   await DB.setMeta('learned', learned);
 }
 
-/* ---------- settings ---------- */
+/* ============ הגדרות ============ */
 function openSettings(){
+  const lrn = Object.entries(learned).filter(([,v])=>v.length);
   openSheet(`
-    <h2>הגדרות</h2>
+    <h2>הגדרות</h2><div class="sub">הכל נשמר על המכשיר הזה בלבד</div>
     <label for="s_lead">להתריע כשנשאר</label>
     <select id="s_lead">${[14,21,30,45,60].map(v=>`<option value="${v}" ${settings.leadDays==v?'selected':''}>${v} ימים</option>`).join('')}</select>
-    <button class="btn" id="s_notif">${Notification.permission==='granted'?'התראות פעילות':'הפעלת התראות'}</button>
-    <div class="hint">ההתראות נשלחות מהטלפון עצמו. הן עובדות רק אחרי שהאפליקציה נוספה למסך הבית, והמערכת בוחרת מתי להעיר אותה — יום לכאן או לכאן.</div>
-    <div class="note">כל הנתונים יושבים על המכשיר הזה בלבד. ניקוי נתוני הדפדפן ימחק אותם. כדאי לייצא פעם בכמה חודשים.</div>
+    <button class="btn" id="s_notif">${Notification.permission==='granted'?'ההתראות פעילות':'הפעלת התראות'}</button>
+    <div class="hint">עובד בכרום על אנדרואיד, אחרי שהאפליקציה נוספה למסך הבית. המערכת מעירה אותה ברקע בערך פעם ביום — העיתוי המדויק נתון לה.</div>
+    <div class="note">ניקוי נתוני הדפדפן או החלפת טלפון ימחקו הכל. כדאי לייצא לקובץ מדי פעם.</div>
     <button class="btn ghost" id="s_exp">ייצוא לקובץ</button>
     <button class="btn ghost" id="s_imp">ייבוא מקובץ</button>
     <input type="file" id="s_file" accept="application/json" hidden>
-    ${Object.keys(learned).length?`<div class="hint" style="margin-top:18px">צפיפויות שנמדדו: ${
-      Object.entries(learned).map(([k,v])=>`${TYPES[k].label} ${(v.reduce((a,b)=>a+b,0)/v.length).toFixed(2)}`).join(' · ')}</div>`:''}
+    ${lrn.length?`<div class="panel" style="margin-top:22px">
+      ${lrn.map(([k,v])=>`<div class="kv"><span>${TYPES[k].label}</span><b>${(v.reduce((a,b)=>a+b,0)/v.length).toFixed(2)} ג׳/מ״ל</b></div>`).join('')}
+      <div class="hint">צפיפויות שנמדדו מאריזות ריקות. מ־2 מדידות ומעלה הן מחליפות את ההערכה.</div></div>`:''}
   `, ()=>{
     $('s_lead').onchange = async e => { settings.leadDays = +e.target.value; await DB.setMeta('settings',settings); render(); };
     $('s_notif').onclick = async () => {
       const r = await Notification.requestPermission();
-      if(r==='granted'){ settings.notify=true; await DB.setMeta('settings',settings); await registerSync(); toast('התראות הופעלו'); openSettings(); }
+      if(r === 'granted'){ await DB.setMeta('settings',settings); await registerSync(); toast('התראות הופעלו'); openSettings(); }
       else toast('ההרשאה נדחתה');
     };
     $('s_exp').onclick = () => {
@@ -491,25 +560,25 @@ function openSettings(){
         const data = JSON.parse(await e.target.files[0].text());
         if(!Array.isArray(data.products)) throw 0;
         for(const p of data.products) await DB.put(p);
-        if(data.settings) await DB.setMeta('settings', settings = {...settings,...data.settings});
-        if(data.learned)  await DB.setMeta('learned',  learned  = {...learned, ...data.learned});
+        if(data.settings) await DB.setMeta('settings', settings = {...settings, ...data.settings});
+        if(data.learned)  await DB.setMeta('learned',  learned  = {...learned,  ...data.learned});
         await load(); closeSheet(); toast(`יובאו ${data.products.length} מוצרים`);
       }catch{ toast('הקובץ לא תקין'); }
     };
   });
 }
 
-/* ---------- notifications ---------- */
+/* ============ התראות ============ */
 async function checkAlerts(){
-  if(Notification.permission!=='granted') return;
-  const reg = await navigator.serviceWorker.ready.catch(()=>null);
-  for(const p of products.filter(x=>x.status!=='done')){
+  if(Notification.permission !== 'granted') return;
+  const reg = await navigator.serviceWorker?.ready.catch(()=>null);
+  for(const p of products.filter(x=>x.status==='open')){
     const s = stats(p);
-    if(s.daysLeft==null || s.daysLeft > settings.leadDays) continue;
+    if(s.daysLeft == null || s.daysLeft > settings.leadDays) continue;
     if(p.notifiedAt && Date.now()-p.notifiedAt < 20*DAY) continue;
     const body = s.daysLeft<=0 ? 'לפי החישוב נגמר' : `נשארו בערך ${s.daysLeft} ימים`;
-    if(reg) reg.showNotification(p.name, {body, icon:'./icon-192.png', badge:'./icon-192.png', tag:p.id});
-    else new Notification(p.name,{body});
+    reg ? reg.showNotification(p.name,{body,icon:'./icon-192.png',badge:'./icon-192.png',tag:p.id,lang:'he',dir:'rtl'})
+        : new Notification(p.name,{body});
     p.notifiedAt = Date.now(); await DB.put(p);
   }
 }
@@ -518,29 +587,24 @@ async function registerSync(){
     const reg = await navigator.serviceWorker.ready;
     if('periodicSync' in reg){
       const st = await navigator.permissions.query({name:'periodic-background-sync'});
-      if(st.state==='granted') await reg.periodicSync.register('shelf-check',{minInterval:DAY});
+      if(st.state === 'granted') await reg.periodicSync.register('shelf-check',{minInterval:DAY});
     }
   }catch{}
 }
 
-/* ---------- boot ---------- */
-async function load(){
-  products = await DB.all();
-  render();
-}
+/* ============ הפעלה ============ */
+async function load(){ products = await DB.all(); render(); }
 (async function init(){
   settings = (await DB.meta('settings'))?.v || settings;
   learned  = (await DB.meta('learned'))?.v  || {};
   await load();
-  $('addBtn').onclick = ()=>openForm();
+  $('addBtn').onclick = () => openForm();
   $('settingsBtn').onclick = openSettings;
   $('search').oninput = render;
-  if('serviceWorker' in navigator){
-    try{ await navigator.serviceWorker.register('./sw.js'); await registerSync(); }catch{}
-  }
-  if(navigator.storage?.persist) navigator.storage.persist().catch(()=>{});
+  if('serviceWorker' in navigator){ try{ await navigator.serviceWorker.register('./sw.js'); await registerSync(); }catch{} }
+  navigator.storage?.persist?.().catch(()=>{});
   checkAlerts();
-  document.addEventListener('visibilitychange',()=>{ if(!document.hidden){ load().then(checkAlerts); } });
+  document.addEventListener('visibilitychange',()=>{ if(!document.hidden) load().then(checkAlerts); });
 })();
 </script>
 </body>
