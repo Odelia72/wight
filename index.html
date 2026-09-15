@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1F2B2E">
+<title>מד מדף</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&family=Frank+Ruhl+Libre:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#E9ECEC;
+  --card:#FFFFFF;
+  --ink:#1F2B2E;
+  --muted:#6D7C7E;
+  --line:#D2D9D9;
+  --level:#2E6F6B;
+  --level-soft:#2E6F6B2E;
+  --low:#B0722A;
+  --out:#9A4A3D;
+  --r:14px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--paper);color:var(--ink);
+  font-family:"Heebo",-apple-system,"Segoe UI",Arial,sans-serif;
+  font-size:16px;line-height:1.5;
+  padding-bottom:env(safe-area-inset-bottom);
+  overscroll-behavior-y:none;
+}
+.num{font-family:"Frank Ruhl Libre",Georgia,serif;font-variant-numeric:tabular-nums}
+.wrap{max-width:540px;margin:0 auto;padding:0 16px 120px}
+
+/* header */
+header{padding:22px 0 10px}
+h1{font-family:"Frank Ruhl Libre",serif;font-weight:700;font-size:26px;margin:0;letter-spacing:-.01em}
+.sub{color:var(--muted);font-size:14px;margin-top:2px}
+.hrow{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.iconbtn{background:none;border:1px solid var(--line);border-radius:10px;width:40px;height:40px;
+  display:grid;place-items:center;color:var(--muted);cursor:pointer;flex:none}
+.iconbtn:active{background:#0000000a}
+
+/* search */
+.search{width:100%;padding:11px 14px;border:1px solid var(--line);border-radius:11px;background:var(--card);
+  font:inherit;color:inherit;margin-bottom:14px}
+.search::placeholder{color:#9AA7A8}
+
+/* group label */
+.group{font-size:13px;color:var(--muted);margin:22px 2px 9px;display:flex;align-items:center;gap:9px}
+.group::after{content:"";flex:1;height:1px;background:var(--line)}
+
+/* card */
+.item{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:9px;
+  cursor:pointer;display:block;width:100%;text-align:right;font:inherit;color:inherit}
+.item:active{transform:scale(.995)}
+.itop{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.name{font-weight:500;font-size:16.5px}
+.meta{color:var(--muted);font-size:13px;margin-top:1px}
+.pct{font-size:21px;font-weight:700;white-space:nowrap}
+.pct small{font-size:12px;font-weight:400;color:var(--muted);margin-inline-start:2px}
+
+/* level bar — solid = certain, hatched = uncertainty band */
+.bar{position:relative;height:9px;border-radius:5px;background:#E4E8E8;margin:11px 0 8px;overflow:hidden}
+.fill{position:absolute;top:0;right:0;bottom:0;background:var(--level);border-radius:5px}
+.band{position:absolute;top:0;bottom:0;border-radius:5px;
+  background:repeating-linear-gradient(-45deg,var(--level-soft) 0 3px,transparent 3px 6px)}
+.item.low .fill{background:var(--low)} .item.low .band{background:repeating-linear-gradient(-45deg,#B0722A33 0 3px,transparent 3px 6px)}
+.item.out .fill{background:var(--out)} .item.out .band{background:repeating-linear-gradient(-45deg,#9A4A3D33 0 3px,transparent 3px 6px)}
+.foot{display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
+.foot .warn{color:var(--low);font-weight:500}
+.foot .over{color:var(--out);font-weight:500}
+
+/* empty state */
+.empty{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty h2{font-family:"Frank Ruhl Libre",serif;color:var(--ink);font-size:20px;margin:0 0 8px}
+
+/* fab */
+.fab{position:fixed;inset-inline-start:50%;transform:translateX(50%);bottom:calc(20px + env(safe-area-inset-bottom));
+  background:var(--ink);color:#fff;border:none;border-radius:26px;padding:14px 26px;font:inherit;font-weight:500;
+  box-shadow:0 6px 20px #1f2b2e40;cursor:pointer;z-index:20}
+@media(min-width:560px){.fab{inset-inline-start:auto;inset-inline-end:calc(50% - 270px + 16px);transform:none}}
+
+/* sheet */
+.scrim{position:fixed;inset:0;background:#1f2b2e66;opacity:0;pointer-events:none;transition:opacity .2s;z-index:40}
+.scrim.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;inset-inline:0;bottom:0;background:var(--paper);border-radius:20px 20px 0 0;z-index:50;
+  transform:translateY(100%);transition:transform .26s cubic-bezier(.2,.8,.3,1);max-height:92vh;overflow-y:auto;
+  max-width:540px;margin:0 auto;padding-bottom:calc(24px + env(safe-area-inset-bottom))}
+.sheet.on{transform:translateY(0)}
+@media(prefers-reduced-motion:reduce){.sheet{transition:none}.scrim{transition:none}}
+.grab{width:38px;height:4px;background:var(--line);border-radius:2px;margin:9px auto 4px}
+.spad{padding:8px 18px 0}
+.sheet h2{font-family:"Frank Ruhl Libre",serif;font-size:21px;margin:6px 0 16px}
+
+/* form */
+label{display:block;font-size:13.5px;color:var(--muted);margin:14px 0 5px}
+input[type=text],input[type=number],input[type=date],select,textarea{
+  width:100%;padding:12px 13px;border:1px solid var(--line);border-radius:11px;background:var(--card);
+  font:inherit;color:inherit;appearance:none}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--level);outline-offset:-1px;border-color:transparent}
+button:focus-visible,.item:focus-visible{outline:2px solid var(--level);outline-offset:2px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{border:1px solid var(--line);background:var(--card);border-radius:20px;padding:8px 14px;font:inherit;font-size:14px;cursor:pointer;color:var(--muted)}
+.chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.hint{font-size:12.5px;color:var(--muted);margin-top:6px;line-height:1.45}
+.btn{width:100%;padding:14px;border:none;border-radius:12px;background:var(--level);color:#fff;font:inherit;font-weight:500;cursor:pointer;margin-top:22px}
+.btn.ghost{background:none;color:var(--muted);border:1px solid var(--line);margin-top:9px}
+.btn.danger{background:none;color:var(--out);border:1px solid #9A4A3D55;margin-top:9px}
+.btn:disabled{opacity:.45}
+
+/* detail */
+.readout{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:17px;margin-bottom:6px}
+.big{font-size:40px;font-weight:700;line-height:1.1}
+.big small{font-size:14px;font-weight:400;color:var(--muted)}
+.readline{color:var(--muted);font-size:14px;margin-top:4px}
+.kv{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line);font-size:14.5px}
+.kv:last-child{border:none}
+.kv span:first-child{color:var(--muted)}
+.hist{font-size:14px;color:var(--muted);display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line)}
+.weighbox{display:flex;gap:9px;align-items:stretch;margin-top:8px}
+.weighbox input{flex:1}
+.weighbox button{flex:none;padding:0 20px;border:none;border-radius:11px;background:var(--level);color:#fff;font:inherit;font-weight:500;cursor:pointer}
+.toast{position:fixed;bottom:90px;inset-inline:0;margin:0 auto;width:max-content;max-width:88%;background:var(--ink);color:#fff;
+  padding:11px 18px;border-radius:22px;font-size:14.5px;opacity:0;transition:opacity .2s;z-index:60;pointer-events:none}
+.toast.on{opacity:1}
+.note{background:#2E6F6B12;border:1px solid #2E6F6B33;border-radius:11px;padding:12px 13px;font-size:13.5px;color:var(--ink);margin-top:14px;line-height:1.5}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="hrow">
+      <div>
+        <h1>מד מדף</h1>
+        <div class="sub" id="sub">טוען…</div>
+      </div>
+      <button class="iconbtn" id="settingsBtn" aria-label="הגדרות">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.2.47.66.79 1.17.79H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+    </div>
+  </header>
+  <input class="search" id="search" type="text" placeholder="חיפוש" hidden>
+  <div id="list"></div>
+</div>
+
+<button class="fab" id="addBtn">+ מוצר חדש</button>
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet"><div class="grab"></div><div class="spad" id="sheetBody"></div></div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+/* ---------- knowledge: densities (g/ml) [min, typical, max] + typical grams per use ---------- */
+const TYPES = {
+  serum:    {label:'סרום',            d:[0.98,1.03,1.08], gpu:0.4},
+  cream:    {label:'קרם פנים',        d:[0.88,0.95,1.02], gpu:0.6},
+  rich:     {label:'קרם עשיר / באלם', d:[0.85,0.92,0.99], gpu:0.8},
+  eye:      {label:'קרם עיניים',      d:[0.90,0.97,1.04], gpu:0.25},
+  oil:      {label:'שמן',             d:[0.84,0.89,0.93], gpu:0.4},
+  gel:      {label:'ג׳ל',             d:[0.98,1.02,1.06], gpu:0.7},
+  mask:     {label:'מסכה',            d:[1.02,1.15,1.30], gpu:8},
+  cleanser: {label:'ניקוי / סבון פנים',d:[0.97,1.02,1.07], gpu:1.5},
+  spf:      {label:'הגנה מהשמש',      d:[0.98,1.05,1.12], gpu:1.2},
+  toner:    {label:'טונר / מי פנים',  d:[0.99,1.00,1.02], gpu:2},
+  body:     {label:'קרם גוף',         d:[0.92,0.98,1.04], gpu:4},
+};
+// residue that never comes out, by container
+const VESSEL = {jar:{label:'צנצנת',r:.02}, tube:{label:'טיוב',r:.06}, pump:{label:'משאבה',r:.08}, dropper:{label:'טפטפת',r:.04}, spray:{label:'ספריי',r:.05}};
+const OVERFILL = 1.06;  // brands fill up to ~6% over the declared volume
+const DAY = 86400000;
+
+/* ---------- storage ---------- */
+const DB = (()=>{
+  let p;
+  const open = () => p ||= new Promise((res,rej)=>{
+    const r = indexedDB.open('shelf-life',1);
+    r.onupgradeneeded = e => { const db = e.target.result;
+      if(!db.objectStoreNames.contains('products')) db.createObjectStore('products',{keyPath:'id'});
+      if(!db.objectStoreNames.contains('meta')) db.createObjectStore('meta',{keyPath:'k'}); };
+    r.onsuccess = e => res(e.target.result); r.onerror = e => rej(e.target.error);
+  });
+  const tx = async (store,mode,fn) => { const db = await open();
+    return new Promise((res,rej)=>{ const t = db.transaction(store,mode); const rq = fn(t.objectStore(store));
+      t.oncomplete = () => res(rq && rq.result); t.onerror = () => rej(t.error); }); };
+  return {
+    all:  () => tx('products','readonly', s=>s.getAll()),
+    put:  o  => tx('products','readwrite',s=>s.put(o)),
+    del:  id => tx('products','readwrite',s=>s.delete(id)),
+    meta: k  => tx('meta','readonly', s=>s.get(k)),
+    setMeta:(k,v)=>tx('meta','readwrite',s=>s.put({k,v})),
+  };
+})();
+
+let products = [], settings = {leadDays:30, notify:false}, learned = {};
+
+/* ---------- math ---------- */
+function densityFor(type){
+  const base = TYPES[type].d;
+  const samples = learned[type] || [];
+  if(samples.length >= 2){
+    const m = samples.reduce((a,b)=>a+b,0)/samples.length;
+    return [m*0.97, m, m*1.03];          // measured → much tighter band
+  }
+  return base;
+}
+function stats(p){
+  const t = TYPES[p.type], d = densityFor(p.type);
+  let cMin = p.ml*d[0], cTyp = p.ml*d[1]*1.02, cMax = p.ml*d[2]*OVERFILL, exact = false;
+  if(p.emptyWeight != null){ cMin = cTyp = cMax = Math.max(1, p.initialGross - p.emptyWeight); exact = true; }
+
+  const ws = [{w:p.initialGross, t:p.startDate}, ...(p.weighings||[])].sort((a,b)=>a.t-b.t);
+  const last = ws[ws.length-1];
+  const used = Math.max(0, p.initialGross - last.w);
+
+  const pct     = clamp(1 - used/cTyp);
+  const pctLow  = clamp(1 - used/cMin);
+  const pctHigh = clamp(1 - used/cMax);
+
+  const residue = VESSEL[p.vessel||'jar'].r;
+  const usablePct = clamp((pct - residue)/(1-residue));
+
+  const gramsLeft = Math.max(0, cTyp - used);
+  const mlLeft = Math.min(p.ml, gramsLeft / d[1]);   // never show more than the label claims
+
+  // rate: measured if we have a real span, otherwise from her stated routine
+  const days = (last.t - ws[0].t)/DAY;
+  let gPerDay = null, rateSrc = null;
+  if(used >= 2 && days >= 4){ gPerDay = used/days; rateSrc = 'measured'; }
+  else if(p.usesPerWeek){ gPerDay = p.usesPerWeek * t.gpu / 7; rateSrc = 'guess'; }
+
+  const usableG = Math.max(0, gramsLeft - cTyp*residue);
+  const daysLeft = gPerDay ? Math.round(usableG/gPerDay) : null;
+  const runOut = daysLeft != null ? last.t + daysLeft*DAY : null;
+
+  return {pct,pctLow,pctHigh,usablePct,gramsLeft,mlLeft,daysLeft,runOut,rateSrc,gPerDay,exact,
+          cTyp,used,last,weighCount:ws.length,residue};
+}
+const clamp = x => Math.max(0, Math.min(1, x));
+const pctTxt = s => s.usablePct <= 0.02 ? 'ריק' : Math.round(s.usablePct*100)+'%';
+function rangeTxt(s){
+  if(s.exact) return 'מדויק';
+  const lo = Math.round(clamp((s.pctLow-s.residue)/(1-s.residue))*100);
+  const hi = Math.round(clamp((s.pctHigh-s.residue)/(1-s.residue))*100);
+  return hi-lo <= 2 ? '' : `טווח ${lo}–${hi}%`;
+}
+function leftTxt(s){
+  if(s.daysLeft == null) return 'שקילה נוספת תיתן תחזית';
+  if(s.daysLeft <= 0) return 'נגמר';
+  if(s.daysLeft < 14) return `עוד כ־${s.daysLeft} ימים`;
+  if(s.daysLeft < 70) return `עוד כ־${Math.round(s.daysLeft/7)} שבועות`;
+  return `עוד כ־${Math.round(s.daysLeft/30)} חודשים`;
+}
+
+/* ---------- list ---------- */
+const $ = id => document.getElementById(id);
+function render(){
+  const q = ($('search').value||'').trim();
+  const active = products.filter(p=>p.status!=='done');
+  $('search').hidden = active.length < 8;
+  const shown = q ? active.filter(p=>(p.name+' '+(p.brand||'')).includes(q)) : active;
+
+  const rows = shown.map(p=>({p,s:stats(p)}))
+    .sort((a,b)=>(a.s.daysLeft ?? 9e5)-(b.s.daysLeft ?? 9e5) || a.s.usablePct-b.s.usablePct);
+
+  const soon = rows.filter(r=>r.s.daysLeft!=null && r.s.daysLeft <= settings.leadDays);
+  const rest = rows.filter(r=>!soon.includes(r));
+  const done = products.filter(p=>p.status==='done');
+
+  $('sub').textContent = active.length
+    ? `${active.length} מוצרים · ${soon.length ? soon.length+' עומדים להיגמר' : 'הכל בשליטה'}`
+    : 'עדיין ריק';
+
+  let h = '';
+  if(!active.length && !done.length){
+    h = `<div class="empty"><h2>שקלי מוצר חדש לפני השימוש הראשון</h2>
+      <p>זו השקילה שכל השאר נשען עליה. אחרי זה שוקלים מתי שבא לך, ורואים כמה נשאר.</p></div>`;
+  } else {
+    if(soon.length) h += `<div class="group">להזמין בקרוב</div>` + soon.map(card).join('');
+    if(rest.length) h += (soon.length?`<div class="group">שאר המדף</div>`:'') + rest.map(card).join('');
+    if(done.length && !q) h += `<div class="group">נגמרו</div>` + done.map(p=>`
+      <button class="item" data-id="${p.id}" style="opacity:.6">
+        <div class="itop"><div><div class="name">${esc(p.name)}</div>
+        <div class="meta">${esc(p.brand||'')}${p.brand?' · ':''}${TYPES[p.type].label} · ${p.ml} מ״ל</div></div></div>
+      </button>`).join('');
+  }
+  $('list').innerHTML = h;
+  $('list').querySelectorAll('.item').forEach(b=>b.onclick=()=>openDetail(b.dataset.id));
+}
+function card({p,s}){
+  const cls = s.usablePct<=0.02 ? 'out' : (s.daysLeft!=null && s.daysLeft<=settings.leadDays ? 'low' : '');
+  const lo = clamp((s.pctLow-s.residue)/(1-s.residue))*100;
+  const hi = clamp((s.pctHigh-s.residue)/(1-s.residue))*100;
+  const r = rangeTxt(s);
+  return `<button class="item ${cls}" data-id="${p.id}">
+    <div class="itop">
+      <div><div class="name">${esc(p.name)}</div>
+        <div class="meta">${esc(p.brand||'')}${p.brand?' · ':''}${TYPES[p.type].label} · ${p.ml} מ״ל</div></div>
+      <div class="pct num">${pctTxt(s)}</div>
+    </div>
+    <div class="bar">
+      <div class="band" style="right:${lo}%;width:${Math.max(0,hi-lo)}%"></div>
+      <div class="fill" style="width:${lo}%"></div>
+    </div>
+    <div class="foot"><span>${r}</span>
+      <span class="${cls==='out'?'over':cls==='low'?'warn':''}">${leftTxt(s)}</span></div>
+  </button>`;
+}
+const esc = s => (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ---------- sheet plumbing ---------- */
+function openSheet(html, after){
+  $('sheetBody').innerHTML = html; $('sheet').classList.add('on'); $('scrim').classList.add('on');
+  after && after();
+}
+function closeSheet(){ $('sheet').classList.remove('on'); $('scrim').classList.remove('on'); }
+$('scrim').onclick = closeSheet;
+function toast(t){ const el=$('toast'); el.textContent=t; el.classList.add('on'); setTimeout(()=>el.classList.remove('on'),2200); }
+const today = () => new Date().toISOString().slice(0,10);
+
+/* ---------- add / edit ---------- */
+function openForm(p){
+  const edit = !!p; p = p || {type:'cream', vessel:'jar', usesPerWeek:14, startDate:Date.now()};
+  openSheet(`
+    <h2>${edit?'עריכת מוצר':'מוצר חדש'}</h2>
+    <label for="f_name">שם המוצר</label>
+    <input id="f_name" type="text" value="${esc(p.name||'')}" placeholder="קרם לילה">
+    <label for="f_brand">מותג</label>
+    <input id="f_brand" type="text" value="${esc(p.brand||'')}">
+    <label>סוג</label>
+    <div class="chips" id="f_type">${Object.entries(TYPES).map(([k,v])=>
+      `<button type="button" class="chip ${p.type===k?'on':''}" data-v="${k}">${v.label}</button>`).join('')}</div>
+    <label>אריזה</label>
+    <div class="chips" id="f_vessel">${Object.entries(VESSEL).map(([k,v])=>
+      `<button type="button" class="chip ${(p.vessel||'jar')===k?'on':''}" data-v="${k}">${v.label}</button>`).join('')}</div>
+    <div class="hint">משאבות וטיובים משאירים שארית שלא יוצאת. זה נלקח בחשבון.</div>
+    <div class="row2">
+      <div><label for="f_ml">נפח מוצהר (מ״ל)</label><input id="f_ml" type="number" inputmode="decimal" step="any" value="${p.ml??''}"></div>
+      <div><label for="f_gross">משקל מלא (גרם)</label><input id="f_gross" type="number" inputmode="decimal" step="any" value="${p.initialGross??''}"></div>
+    </div>
+    <div class="hint">${edit?'שינוי המשקל המלא יחשב מחדש את כל ההיסטוריה.':'שקלי את המוצר הסגור, לפני השימוש הראשון, עם המכסה.'}</div>
+    <label>כמה משתמשים בו</label>
+    <div class="chips" id="f_uses">
+      ${[[14,'פעמיים ביום'],[7,'פעם ביום'],[3,'3 בשבוע'],[2,'פעמיים בשבוע'],[1,'פעם בשבוע']]
+        .map(([v,l])=>`<button type="button" class="chip ${p.usesPerWeek==v?'on':''}" data-v="${v}">${l}</button>`).join('')}
+    </div>
+    <label for="f_date">תאריך הפתיחה</label>
+    <input id="f_date" type="date" value="${new Date(p.startDate).toISOString().slice(0,10)}">
+    <button class="btn" id="f_save">${edit?'שמירת שינויים':'הוספה למדף'}</button>
+    ${edit?'':'<button class="btn ghost" id="f_cancel">ביטול</button>'}
+  `, ()=>{
+    chips('f_type'); chips('f_vessel'); chips('f_uses');
+    $('f_cancel') && ($('f_cancel').onclick = closeSheet);
+    $('f_save').onclick = async () => {
+      const ml = +$('f_ml').value, gross = +$('f_gross').value, name = $('f_name').value.trim();
+      if(!name || !(ml>0) || !(gross>0)) return toast('חסר שם, נפח או משקל');
+      const type = pick('f_type'), vessel = pick('f_vessel');
+      const d = densityFor(type);
+      if(gross < ml*d[0]*0.9) return toast('המשקל נמוך מהתוכן בלבד — לבדוק שוב');
+      const o = {
+        id: p.id || crypto.randomUUID(),
+        name, brand:$('f_brand').value.trim(), type, vessel, ml,
+        initialGross: gross,
+        usesPerWeek: +pick('f_uses'),
+        startDate: new Date($('f_date').value || today()).getTime(),
+        weighings: p.weighings||[], status: p.status||'open',
+        emptyWeight: p.emptyWeight ?? null, notifiedAt: p.notifiedAt ?? null,
+      };
+      await DB.put(o); await load(); closeSheet(); toast(edit?'נשמר':'נוסף למדף');
+    };
+  });
+}
+function chips(id){ const el=$(id); el.onclick=e=>{ const b=e.target.closest('.chip'); if(!b)return;
+  el.querySelectorAll('.chip').forEach(c=>c.classList.remove('on')); b.classList.add('on'); }; }
+const pick = id => $(id).querySelector('.chip.on')?.dataset.v;
+
+/* ---------- detail ---------- */
+function openDetail(id){
+  const p = products.find(x=>x.id===id); if(!p) return;
+  const s = stats(p);
+  const ws = [{w:p.initialGross,t:p.startDate,first:true}, ...(p.weighings||[])].sort((a,b)=>b.t-a.t);
+  const done = p.status==='done';
+  openSheet(`
+    <h2>${esc(p.name)}</h2>
+    <div class="meta" style="margin:-10px 0 14px">${esc(p.brand||'')}${p.brand?' · ':''}${TYPES[p.type].label} · ${p.ml} מ״ל · ${VESSEL[p.vessel||'jar'].label}</div>
+    ${done ? `<div class="readout"><div class="big num">נגמר</div>
+        <div class="readline">${p.emptyWeight!=null?`אריזה ריקה: ${p.emptyWeight} גרם — הצפיפות האמיתית נשמרה ומשפרת חישובים עתידיים`:'בלי שקילה של האריזה הריקה'}</div></div>`
+    : `<div class="readout">
+        <div class="big num">${pctTxt(s)} <small>נשארו</small></div>
+        <div class="readline">${s.exact?'חישוב מדויק':rangeTxt(s)||'הערכה'} · כ־${s.mlLeft.toFixed(1)} מ״ל · ${leftTxt(s)}</div>
+       </div>
+       <div class="readout">
+         <label for="d_w" style="margin-top:0">שקילה חדשה (גרם)</label>
+         <div class="weighbox"><input id="d_w" type="number" inputmode="decimal" step="any" placeholder="${s.last.w}">
+           <button id="d_add">שמירה</button></div>
+         ${s.rateSrc==='guess'?`<div class="hint">התחזית כרגע מבוססת על הרגלי השימוש שהזנת. השקילה הבאה תחליף אותה במדידה אמיתית.</div>`:
+           s.gPerDay?`<div class="hint">קצב מדוד: ${s.gPerDay.toFixed(2)} גרם ליום.</div>`:''}
+       </div>`}
+    <div class="readout">
+      <div class="kv"><span>משקל מלא בהתחלה</span><span class="num">${p.initialGross} גרם</span></div>
+      <div class="kv"><span>נפתח</span><span class="num">${fmt(p.startDate)}</span></div>
+      <div class="kv"><span>נוצל עד כה</span><span class="num">${s.used.toFixed(1)} גרם</span></div>
+      ${ws.map(w=>`<div class="hist"><span>${fmt(w.t)}${w.first?' · שקילה ראשונה':''}</span><span class="num">${w.w} גרם</span></div>`).join('')}
+    </div>
+    ${done?'':`<button class="btn" id="d_finish">המוצר נגמר</button>`}
+    <button class="btn ghost" id="d_edit">עריכת פרטים</button>
+    <button class="btn danger" id="d_del">מחיקה</button>
+  `, ()=>{
+    $('d_add') && ($('d_add').onclick = async () => {
+      const w = +$('d_w').value; if(!(w>0)) return toast('להקליד משקל');
+      if(w > p.initialGross + 1) return toast('כבד יותר מהמשקל ההתחלתי');
+      p.weighings = [...(p.weighings||[]), {w, t: Date.now()}];
+      p.notifiedAt = null;
+      await DB.put(p); await load(); openDetail(id); toast('נשמר');
+    });
+    $('d_finish') && ($('d_finish').onclick = ()=>finishFlow(p));
+    $('d_edit').onclick = ()=>openForm(p);
+    $('d_del').onclick = async () => { if(!confirm('למחוק את '+p.name+'?')) return;
+      await DB.del(p.id); await load(); closeSheet(); toast('נמחק'); };
+  });
+}
+const fmt = t => new Date(t).toLocaleDateString('he-IL',{day:'numeric',month:'short',year:'2-digit'});
+
+/* ---------- finish: learn the true density ---------- */
+function finishFlow(p){
+  openSheet(`
+    <h2>${esc(p.name)} נגמר</h2>
+    <div class="note">שקילה של האריזה הריקה היא מה שהופך את ההערכות למדידה. היא מלמדת את החישוב מה הצפיפות האמיתית של ${TYPES[p.type].label}, וכל מוצר חדש מהסוג הזה יהיה מדויק יותר.</div>
+    <label for="e_w">משקל האריזה הריקה (גרם)</label>
+    <input id="e_w" type="number" inputmode="decimal" step="any" placeholder="שוטפת, מייבשת, שוקלת">
+    <div class="hint">אפשר גם לדלג — התיעוד פשוט יישאר משוער.</div>
+    <button class="btn" id="e_save">שמירה לארכיון</button>
+    <button class="btn ghost" id="e_skip">לדלג ולסמן כנגמר</button>
+    <button class="btn danger" id="e_del">לא אקנה שוב — למחוק</button>
+  `, ()=>{
+    const close = async () => { await load(); closeSheet(); };
+    $('e_save').onclick = async () => {
+      const w = +$('e_w').value;
+      if(!(w>0) || w >= p.initialGross) return toast('משקל האריזה צריך להיות קטן מהמשקל המלא');
+      p.emptyWeight = w; p.status='done'; p.doneAt=Date.now();
+      await DB.put(p); await learn(p.type, (p.initialGross-w)/p.ml);
+      await close(); toast('נשמר. החישוב לסוג הזה השתפר');
+    };
+    $('e_skip').onclick = async () => { p.status='done'; p.doneAt=Date.now(); await DB.put(p); await close(); toast('סומן כנגמר'); };
+    $('e_del').onclick = async () => {
+      const w = +$('e_w').value;
+      if(w>0 && w<p.initialGross) await learn(p.type,(p.initialGross-w)/p.ml); // keep the lesson, drop the product
+      await DB.del(p.id); await close(); toast('נמחק');
+    };
+  });
+}
+async function learn(type, density){
+  if(!(density>0.6 && density<1.6)) return;         // sanity guard
+  learned[type] = [...(learned[type]||[]), +density.toFixed(4)].slice(-8);
+  await DB.setMeta('learned', learned);
+}
+
+/* ---------- settings ---------- */
+function openSettings(){
+  openSheet(`
+    <h2>הגדרות</h2>
+    <label for="s_lead">להתריע כשנשאר</label>
+    <select id="s_lead">${[14,21,30,45,60].map(v=>`<option value="${v}" ${settings.leadDays==v?'selected':''}>${v} ימים</option>`).join('')}</select>
+    <button class="btn" id="s_notif">${Notification.permission==='granted'?'התראות פעילות':'הפעלת התראות'}</button>
+    <div class="hint">ההתראות נשלחות מהטלפון עצמו. הן עובדות רק אחרי שהאפליקציה נוספה למסך הבית, והמערכת בוחרת מתי להעיר אותה — יום לכאן או לכאן.</div>
+    <div class="note">כל הנתונים יושבים על המכשיר הזה בלבד. ניקוי נתוני הדפדפן ימחק אותם. כדאי לייצא פעם בכמה חודשים.</div>
+    <button class="btn ghost" id="s_exp">ייצוא לקובץ</button>
+    <button class="btn ghost" id="s_imp">ייבוא מקובץ</button>
+    <input type="file" id="s_file" accept="application/json" hidden>
+    ${Object.keys(learned).length?`<div class="hint" style="margin-top:18px">צפיפויות שנמדדו: ${
+      Object.entries(learned).map(([k,v])=>`${TYPES[k].label} ${(v.reduce((a,b)=>a+b,0)/v.length).toFixed(2)}`).join(' · ')}</div>`:''}
+  `, ()=>{
+    $('s_lead').onchange = async e => { settings.leadDays = +e.target.value; await DB.setMeta('settings',settings); render(); };
+    $('s_notif').onclick = async () => {
+      const r = await Notification.requestPermission();
+      if(r==='granted'){ settings.notify=true; await DB.setMeta('settings',settings); await registerSync(); toast('התראות הופעלו'); openSettings(); }
+      else toast('ההרשאה נדחתה');
+    };
+    $('s_exp').onclick = () => {
+      const blob = new Blob([JSON.stringify({v:1,products,settings,learned},null,2)],{type:'application/json'});
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+      a.download = `shelf-${today()}.json`; a.click(); URL.revokeObjectURL(a.href);
+    };
+    $('s_imp').onclick = () => $('s_file').click();
+    $('s_file').onchange = async e => {
+      try{
+        const data = JSON.parse(await e.target.files[0].text());
+        if(!Array.isArray(data.products)) throw 0;
+        for(const p of data.products) await DB.put(p);
+        if(data.settings) await DB.setMeta('settings', settings = {...settings,...data.settings});
+        if(data.learned)  await DB.setMeta('learned',  learned  = {...learned, ...data.learned});
+        await load(); closeSheet(); toast(`יובאו ${data.products.length} מוצרים`);
+      }catch{ toast('הקובץ לא תקין'); }
+    };
+  });
+}
+
+/* ---------- notifications ---------- */
+async function checkAlerts(){
+  if(Notification.permission!=='granted') return;
+  const reg = await navigator.serviceWorker.ready.catch(()=>null);
+  for(const p of products.filter(x=>x.status!=='done')){
+    const s = stats(p);
+    if(s.daysLeft==null || s.daysLeft > settings.leadDays) continue;
+    if(p.notifiedAt && Date.now()-p.notifiedAt < 20*DAY) continue;
+    const body = s.daysLeft<=0 ? 'לפי החישוב נגמר' : `נשארו בערך ${s.daysLeft} ימים`;
+    if(reg) reg.showNotification(p.name, {body, icon:'./icon-192.png', badge:'./icon-192.png', tag:p.id});
+    else new Notification(p.name,{body});
+    p.notifiedAt = Date.now(); await DB.put(p);
+  }
+}
+async function registerSync(){
+  try{
+    const reg = await navigator.serviceWorker.ready;
+    if('periodicSync' in reg){
+      const st = await navigator.permissions.query({name:'periodic-background-sync'});
+      if(st.state==='granted') await reg.periodicSync.register('shelf-check',{minInterval:DAY});
+    }
+  }catch{}
+}
+
+/* ---------- boot ---------- */
+async function load(){
+  products = await DB.all();
+  render();
+}
+(async function init(){
+  settings = (await DB.meta('settings'))?.v || settings;
+  learned  = (await DB.meta('learned'))?.v  || {};
+  await load();
+  $('addBtn').onclick = ()=>openForm();
+  $('settingsBtn').onclick = openSettings;
+  $('search').oninput = render;
+  if('serviceWorker' in navigator){
+    try{ await navigator.serviceWorker.register('./sw.js'); await registerSync(); }catch{}
+  }
+  if(navigator.storage?.persist) navigator.storage.persist().catch(()=>{});
+  checkAlerts();
+  document.addEventListener('visibilitychange',()=>{ if(!document.hidden){ load().then(checkAlerts); } });
+})();
+</script>
+</body>
+</html>
